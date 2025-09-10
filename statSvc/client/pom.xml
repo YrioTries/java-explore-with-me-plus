@@ -9,4 +9,11 @@
     <artifactId>client</artifactId>
     <name>Archetype - client</name>
     <url>http://maven.apache.org</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+    </dependencies>
 </project>
