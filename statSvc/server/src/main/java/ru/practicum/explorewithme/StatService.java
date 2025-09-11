@@ -8,7 +8,6 @@ import java.util.List;
 
 public interface StatService {
     void createStat(HttpServletRequest request);
-
     List<StatResponseDto> getStats(LocalDateTime start, LocalDateTime end,
                                    List<String> uris, Boolean unique);
 }

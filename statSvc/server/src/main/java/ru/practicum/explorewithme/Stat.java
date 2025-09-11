@@ -31,9 +31,4 @@ public class Stat {
 
     @Column(name = "created", nullable = false)
     private LocalDateTime created;
-
-    //Геттер для имени приложения
-    public String getAppName() {
-        return app != null ? app.getName() : null;
-    }
 }

@@ -13,11 +13,20 @@ import java.util.List;
 public class StatServiceImpl implements StatService {
 
     private final StatRepository statRepository;
+    private final AppRepository appRepository;
 
     @Override
     public void createStat(HttpServletRequest request) {
+        String appName = "ewm-main-service";
+        App app = appRepository.findByName(appName)
+                .orElseGet(() -> {
+                    App newApp = new App();
+                    newApp.setName(appName);
+                    return appRepository.save(newApp);
+                });
+
         Stat newStat = new Stat();
-        newStat.setAppName("explore-with-me"); // или получать из заголовков
+        newStat.setApp(app);
         newStat.setUri(request.getRequestURI());
         newStat.setIp(request.getRemoteAddr());
         newStat.setCreated(LocalDateTime.now());

@@ -1,4 +1,5 @@
 TRUNCATE TABLE apps CASCADE;
+TRUNCATE TABLE stats CASCADE;
 
 INSERT INTO apps (name) VALUES ('ewm-main-service');
 INSERT INTO apps (name) VALUES ('ewm-stats-service');
