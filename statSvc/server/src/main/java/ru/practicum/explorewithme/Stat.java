@@ -18,13 +18,22 @@ public class Stat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name", nullable = false)
-    private String appName;
+    @JoinColumn(name = "app_id", nullable = false)
+    private App app;
+
     @Column(name = "uri", nullable = false)
     private String uri;
+
     @Column(name = "ip", nullable = false)
     private String ip;
+
     @Column(name = "created", nullable = false)
     private LocalDateTime created;
+
+    //Геттер для имени приложения
+    public String getAppName() {
+        return app != null ? app.getName() : null;
+    }
 }

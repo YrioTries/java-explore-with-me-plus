@@ -1,18 +1,37 @@
 package ru.practicum.explorewithme;
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.StatResponseDto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class StatServiceImpl implements StatService {
 
+    private final StatRepository statRepository;
+
+    @Override
     public void createStat(HttpServletRequest request) {
         Stat newStat = new Stat();
+        newStat.setAppName("explore-with-me"); // или получать из заголовков
         newStat.setUri(request.getRequestURI());
         newStat.setIp(request.getRemoteAddr());
         newStat.setCreated(LocalDateTime.now());
+
+        statRepository.save(newStat);
     }
 
+    @Override
+    public List<StatResponseDto> getStats(LocalDateTime start, LocalDateTime end,
+                                          List<String> uris, Boolean unique) {
+        if (Boolean.TRUE.equals(unique)) {
+            return statRepository.getUniqueStats(start, end, uris);
+        } else {
+            return statRepository.getStats(start, end, uris);
+        }
+    }
 }

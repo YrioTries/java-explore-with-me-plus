@@ -1,14 +1,39 @@
-services:
-  stats-server:
-    ports:
-      - "9090:9090"
+version: '3.8'
 
+services:
   stats-db:
     image: postgres:16.1
-
-  ewm-service:
+    container_name: stats-db
+    environment:
+      POSTGRES_DB: explorewithme
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: 12345
     ports:
-      - "8080:8080"
+      - "5432:5432"
+    volumes:
+      - stats-db-data:/var/lib/postgresql/data
+      - ./statSvc/server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./statSvc/server/src/main/resources/data.sql:/docker-entrypoint-initdb.d/02-data.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbuser -d explorewithme"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  ewm-db:
-    image: postgres:16.1
+  stats-server:
+    build: ./statSvc/server
+    container_name: stats-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/explorewithme
+      SPRING_DATASOURCE_USERNAME: dbuser
+      SPRING_DATASOURCE_PASSWORD: 12345
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "9090:9090"
+    depends_on:
+      stats-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  stats-db-data:
