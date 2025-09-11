@@ -1,4 +1,4 @@
-package ru.practicum;
+package ru.practicum.stats;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
