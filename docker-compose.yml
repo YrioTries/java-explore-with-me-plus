@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   stats-db:
     image: postgres:16.1
@@ -35,6 +33,20 @@ services:
     depends_on:
       stats-db:
         condition: service_healthy
+    restart: unless-stopped
+
+  ewm-service:
+    build:
+      context: .  # или путь к основному сервису
+      dockerfile: Dockerfile-main  # нужен другой Dockerfile
+    container_name: ewm-service
+    environment:
+    # настройки основного сервиса
+    ports:
+      - "8080:8080"
+    depends_on:
+      - stats-db
+      - stats-server
     restart: unless-stopped
 
 volumes:
