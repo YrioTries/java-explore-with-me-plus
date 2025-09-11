@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   stats-db:
     image: postgres:16.1
@@ -17,6 +19,23 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  stats-server:
+    build:
+      context: ./statSvc/server
+      dockerfile: Dockerfile
+    container_name: stats-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/explorewithme
+      SPRING_DATASOURCE_USERNAME: dbuser
+      SPRING_DATASOURCE_PASSWORD: 12345
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "9090:9090"
+    depends_on:
+      stats-db:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   stats-db-data:
