@@ -2,7 +2,7 @@ FROM openjdk:21-jdk-slim
 
 WORKDIR /app
 
-COPY target/*.jar app.jar
+COPY statSvc/server/target/*.jar app.jar
 
 EXPOSE 9090
 
