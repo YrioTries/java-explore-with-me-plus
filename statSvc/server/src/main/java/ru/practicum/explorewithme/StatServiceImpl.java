@@ -1,9 +1,9 @@
 package ru.practicum.explorewithme;
 
-import jakarta.servlet.http.HttpServletRequest;
+import ru.practicum.EndpointHitDto;
+import ru.practicum.StatResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.StatResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,31 +16,37 @@ public class StatServiceImpl implements StatService {
     private final AppRepository appRepository;
 
     @Override
-    public void createStat(HttpServletRequest request) {
-        String appName = "ewm-main-service";
-        App app = appRepository.findByName(appName)
+    public void addHit(EndpointHitDto endpointHitDto) {
+        App app = appRepository.findByName(endpointHitDto.getApp())
                 .orElseGet(() -> {
                     App newApp = new App();
-                    newApp.setName(appName);
+                    newApp.setName(endpointHitDto.getApp());
                     return appRepository.save(newApp);
                 });
 
-        Stat newStat = new Stat();
-        newStat.setApp(app);
-        newStat.setUri(request.getRequestURI());
-        newStat.setIp(request.getRemoteAddr());
-        newStat.setCreated(LocalDateTime.now());
+        Stat stat = new Stat();
+        stat.setApp(app);
+        stat.setUri(endpointHitDto.getUri());
+        stat.setIp(endpointHitDto.getIp());
+        stat.setCreated(endpointHitDto.getTimestamp());
 
-        statRepository.save(newStat);
+        statRepository.save(stat);
     }
 
     @Override
-    public List<StatResponseDto> getStats(LocalDateTime start, LocalDateTime end,
-                                          List<String> uris, Boolean unique) {
-        if (Boolean.TRUE.equals(unique)) {
-            return statRepository.getUniqueStats(start, end, uris);
+    public List<StatResponseDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+        if (unique) {
+            if (uris == null || uris.isEmpty()) {
+                return statRepository.findUniqueStats(start, end);
+            } else {
+                return statRepository.findUniqueStatsByUris(start, end, uris);
+            }
         } else {
-            return statRepository.getStats(start, end, uris);
+            if (uris == null || uris.isEmpty()) {
+                return statRepository.findStats(start, end);
+            } else {
+                return statRepository.findStatsByUris(start, end, uris);
+            }
         }
     }
 }
