@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   stats-db:
     image: postgres:16.1
@@ -38,10 +40,13 @@ services:
   ewm-service:
     build:
       context: .  # или путь к основному сервису
-      dockerfile: Dockerfile-main  # нужен другой Dockerfile
+      dockerfile: Dockerfile  # нужен Dockerfile для основного сервиса
     container_name: ewm-service
-    environment:
-    # настройки основного сервиса
+    environment:  # ← ДОЛЖЕН БЫТЬ MAPPING, а не список
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/explorewithme
+      SPRING_DATASOURCE_USERNAME: dbuser
+      SPRING_DATASOURCE_PASSWORD: 12345
+      SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8080:8080"
     depends_on:
