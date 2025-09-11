@@ -21,5 +21,11 @@
             <artifactId>dto</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>ru.practicum</groupId>
+            <artifactId>common-mappers</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
