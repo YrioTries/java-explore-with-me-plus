@@ -10,7 +10,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
-	<name>Explore With Me</name>
+	<name>explore-with-me</name>
 
 	<groupId>ru.practicum</groupId>
 	<artifactId>java-explore-with-me-plus</artifactId>
