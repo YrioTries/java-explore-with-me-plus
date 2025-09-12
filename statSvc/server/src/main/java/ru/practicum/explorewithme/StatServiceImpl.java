@@ -13,19 +13,11 @@ import java.util.List;
 public class StatServiceImpl implements StatService {
 
     private final StatRepository statRepository;
-    private final AppRepository appRepository;
 
     @Override
     public void addHit(EndpointHitDto endpointHitDto) {
-        App app = appRepository.findByName(endpointHitDto.getApp())
-                .orElseGet(() -> {
-                    App newApp = new App();
-                    newApp.setName(endpointHitDto.getApp());
-                    return appRepository.save(newApp);
-                });
-
         Stat stat = new Stat();
-        stat.setApp(app);
+        stat.setApp(endpointHitDto.getApp());
         stat.setUri(endpointHitDto.getUri());
         stat.setIp(endpointHitDto.getIp());
         stat.setCreated(endpointHitDto.getTimestamp());
@@ -34,7 +26,8 @@ public class StatServiceImpl implements StatService {
     }
 
     @Override
-    public List<StatResponseDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+    public List<StatResponseDto> getStats(LocalDateTime start, LocalDateTime end,
+                                          List<String> uris, Boolean unique) {
         if (unique) {
             if (uris == null || uris.isEmpty()) {
                 return statRepository.findUniqueStats(start, end);

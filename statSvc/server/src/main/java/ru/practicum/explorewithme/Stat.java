@@ -19,9 +19,8 @@ public class Stat {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "app_id", nullable = false)
-    private App app;
+    @Column(name = "app", nullable = false)
+    private String app;
 
     @Column(name = "uri", nullable = false)
     private String uri;
