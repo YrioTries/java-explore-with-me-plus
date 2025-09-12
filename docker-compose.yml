@@ -37,22 +37,5 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  ewm-service:
-    build:
-      context: .  # или путь к основному сервису
-      dockerfile: Dockerfile  # нужен Dockerfile для основного сервиса
-    container_name: ewm-service
-    environment:  # ← ДОЛЖЕН БЫТЬ MAPPING, а не список
-      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/explorewithme
-      SPRING_DATASOURCE_USERNAME: dbuser
-      SPRING_DATASOURCE_PASSWORD: 12345
-      SPRING_PROFILES_ACTIVE: docker
-    ports:
-      - "8080:8080"
-    depends_on:
-      - stats-db
-      - stats-server
-    restart: unless-stopped
-
 volumes:
   stats-db-data:

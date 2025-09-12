@@ -14,16 +14,16 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class EndpointHitDto {
 
-    @NotBlank(message = "App cannot be blank")
+    @NotBlank(message = "Название приложения не может быть пустым")
     private String app;
 
-    @NotBlank(message = "URI cannot be blank")
+    @NotBlank(message = "URI не может быть пустым")
     private String uri;
 
-    @NotBlank(message = "IP cannot be blank")
+    @NotBlank(message = "IP-адрес не может быть пустым")
     private String ip;
 
-    @NotNull(message = "Timestamp cannot be null")
+    @NotNull(message = "Временная метка не может быть null")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime timestamp;
 }
