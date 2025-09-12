@@ -3,17 +3,29 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>ru.practicum</groupId>
-        <artifactId>statSvc</artifactId>
+        <artifactId>stat-svc</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>client</artifactId>
-    <name>Archetype - client</name>
+    <artifactId>server</artifactId>
+    <name>Archetype - server</name>
     <url>http://maven.apache.org</url>
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.practicum</groupId>
+            <artifactId>dto</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.practicum</groupId>
+            <artifactId>common-mappers</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
