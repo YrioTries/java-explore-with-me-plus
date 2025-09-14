@@ -13,15 +13,11 @@ import java.util.List;
 public class StatServiceImpl implements StatService {
 
     private final StatRepository statRepository;
+    private final StatMapper statMapper;
 
     @Override
     public void addHit(EndpointHitDto endpointHitDto) {
-        Stat stat = new Stat();
-        stat.setApp(endpointHitDto.getApp());
-        stat.setUri(endpointHitDto.getUri());
-        stat.setIp(endpointHitDto.getIp());
-        stat.setCreated(endpointHitDto.getTimestamp());
-
+        Stat stat = statMapper.toStat(endpointHitDto);
         statRepository.save(stat);
     }
 
