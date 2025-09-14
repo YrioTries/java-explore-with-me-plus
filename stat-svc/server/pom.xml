@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>ru.practicum</groupId>
-        <artifactId>statSvc</artifactId>
+        <artifactId>stat-svc</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>server</artifactId>
