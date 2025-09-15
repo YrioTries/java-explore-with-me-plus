@@ -1,5 +1,6 @@
 package ru.practicum.explorewithme;
 
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.EndpointHitDto;
 import ru.practicum.StatResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class StatServiceImpl implements StatService {
 
@@ -16,6 +18,7 @@ public class StatServiceImpl implements StatService {
     private final StatMapper statMapper;
 
     @Override
+    @Transactional
     public void addHit(EndpointHitDto endpointHitDto) {
         Stat stat = statMapper.toStat(endpointHitDto);
         statRepository.save(stat);
