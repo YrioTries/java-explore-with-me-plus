@@ -1,10 +1,11 @@
 package ru.practicum;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
+
 import java.time.Duration;
 
 @Configuration
@@ -14,15 +15,19 @@ public class StatsClientConfig {
     private String serverUrl;
 
     @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return builder
-                .setConnectTimeout(Duration.ofSeconds(5))
-                .setReadTimeout(Duration.ofSeconds(5))
+    public RestClient restClient() {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout((int) Duration.ofSeconds(5).toMillis());
+        requestFactory.setReadTimeout((int) Duration.ofSeconds(5).toMillis());
+
+        return RestClient.builder()
+                .baseUrl(serverUrl)
+                .requestFactory(requestFactory)
                 .build();
     }
 
     @Bean
-    public StatsClient statsClient(RestTemplate restTemplate) {
-        return new StatsClient(serverUrl, restTemplate);
+    public StatsClient statsClient(RestClient restClient) {
+        return new StatsClient(serverUrl, restClient);
     }
 }

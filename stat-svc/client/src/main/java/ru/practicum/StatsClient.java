@@ -1,36 +1,33 @@
 package ru.practicum;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
-
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestClient;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.StringJoiner;
 
 @Slf4j
 public class StatsClient {
     private final String serverUrl;
-    private final RestTemplate restTemplate;
+    private final RestClient restClient;
 
-    public StatsClient(String serverUrl, RestTemplate restTemplate) {
+    public StatsClient(String serverUrl, RestClient restClient) {
         this.serverUrl = serverUrl;
-        this.restTemplate = restTemplate;
+        this.restClient = restClient;
     }
 
     public void hit(EndpointHitDto endpointHitDto) {
         String url = serverUrl + "/hit";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<EndpointHitDto> request = new HttpEntity<>(endpointHitDto, headers);
-
         try {
-            ResponseEntity<Object> response = restTemplate.postForEntity(url, request, Object.class);
-            log.info("Хит успешно отправлен: {}", response.getStatusCode());
+            restClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(endpointHitDto)
+                    .retrieve()
+                    .toBodilessEntity();
+            log.info("Хит успешно отправлен");
         } catch (Exception e) {
             log.error("Ошибка при отправке хита в сервис статистики: {}", e.getMessage());
         }
@@ -38,33 +35,28 @@ public class StatsClient {
 
     public List<StatResponseDto> getStats(LocalDateTime start, LocalDateTime end,
                                           List<String> uris, Boolean unique) {
-        String url = serverUrl + "/stats?start={start}&end={end}&unique={unique}";
-
-        if (uris != null && !uris.isEmpty()) {
-            url += "&uris={uris}";
-        }
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("start", start.format(formatter));
-        params.put("end", end.format(formatter));
-        params.put("unique", unique);
-
+        StringJoiner uriJoiner = new StringJoiner(",");
         if (uris != null && !uris.isEmpty()) {
-            params.put("uris", String.join(",", uris));
-        } else {
-            params.put("uris", "");
+            uris.forEach(uriJoiner::add);
         }
+
+        String url = String.format(
+                "%s/stats?start=%s&end=%s&unique=%s&uris=%s",
+                serverUrl,
+                start.format(formatter),
+                end.format(formatter),
+                unique,
+                uriJoiner.toString()
+        );
 
         try {
-            ResponseEntity<StatResponseDto[]> response = restTemplate.getForEntity(
-                    url,
-                    StatResponseDto[].class,
-                    params
-            );
+            StatResponseDto[] response = restClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .body(StatResponseDto[].class);
             log.info("Статистика успешно получена от сервиса");
-            return List.of(response.getBody());
+            return List.of(response);
         } catch (Exception e) {
             log.error("Ошибка при получении статистики от сервиса: {}", e.getMessage());
             return List.of();
