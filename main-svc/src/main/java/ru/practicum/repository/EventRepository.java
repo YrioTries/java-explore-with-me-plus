@@ -5,4 +5,3 @@ import ru.practicum.model.Event;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 }
-
