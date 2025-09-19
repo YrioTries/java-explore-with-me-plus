@@ -1,3 +1,9 @@
+server:
+  port: 8080
+
+stat-svc:
+  client: http://stats-serve:9090
+
 logging:
   level.org.springframework.orm.jpa: INFO
   level.org.springframework.transaction: INFO
@@ -18,5 +24,3 @@ spring:
     driverClassName: org.postgresql.Driver
     username: dbuser
     password: 12345
-server:
-  port: 8080
