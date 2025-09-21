@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.compilation.CompilationDto;
+import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.mapper.CompilationMapper;
+import ru.practicum.model.Compilation;
 import ru.practicum.repository.CompilationRepository;
 
 import java.util.List;
@@ -38,7 +40,10 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public CompilationDto getCompilationById(Long compId) {
-        log.info("");
-        return null;
+        log.info("Сервис получил запрос на получение подборки");
+        Compilation compilation = compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFoundException("Подборки с id " + compId + " нет в БД"));
+        log.info("Подборка получена из БД и передаётся в контроллер");
+        return compilationMapper.toCompilationDto(compilation);
     }
 }
