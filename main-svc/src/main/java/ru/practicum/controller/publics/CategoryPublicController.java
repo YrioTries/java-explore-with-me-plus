@@ -38,6 +38,6 @@ public class CategoryPublicController {
         log.info("Id запрашиваемой категории: {}", catId);
         CategoryDto categoryDto = categoryService.getCategoryById(catId);
         log.info("Возвращаем категорию клиенту");
-        return null;
+        return categoryDto;
     }
 }

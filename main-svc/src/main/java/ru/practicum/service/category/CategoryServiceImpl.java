@@ -35,7 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto getCategoryById(Long id) {
         log.info("Сервис получил запрос на получение категории");
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Категории с id " + id + "нет в БД"));
+                .orElseThrow(() -> new NotFoundException("Категории с id " + id + " нет в БД"));
         log.info("Категория получена из БД и передаётся в контроллер");
         return categoryMapper.toCategoryDto(category);
     }
