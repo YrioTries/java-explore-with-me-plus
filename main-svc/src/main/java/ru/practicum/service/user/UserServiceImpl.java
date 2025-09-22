@@ -2,11 +2,13 @@ package ru.practicum.service.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.user.NewUserRequest;
 import ru.practicum.dto.user.UserDto;
+import ru.practicum.exceptions.ConflictException;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.mapper.UserMapper;
 import ru.practicum.model.User;
@@ -26,7 +28,7 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public List<UserDto> getUsers(List<Long> ids, Integer from, Integer size) {
         log.info("Получение пользователей с параметрами: ids={}, from={}, size={}", ids, from, size);
-        PageRequest pageRequest = PageRequest.of(from, size);
+        PageRequest pageRequest = PageRequest.of(from / size, size);
 
         if (ids != null && !ids.isEmpty()) {
             return userRepository.findAllByIdIn(ids, pageRequest).stream()
@@ -43,9 +45,19 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto createUser(NewUserRequest newUserRequest) {
         log.info("Создание пользователя: {}", newUserRequest);
-        User user = userMapper.toUser(newUserRequest);
-        User savedUser = userRepository.save(user);
-        return userMapper.toUserDto(savedUser);
+
+        // Проверка на уникальность email
+        if (userRepository.existsByEmail(newUserRequest.getEmail())) {
+            throw new ConflictException("Пользователь с email '" + newUserRequest.getEmail() + "' уже существует");
+        }
+
+        try {
+            User user = userMapper.toUser(newUserRequest);
+            User savedUser = userRepository.save(user);
+            return userMapper.toUserDto(savedUser);
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictException("Пользователь с email '" + newUserRequest.getEmail() + "' уже существует");
+        }
     }
 
     @Override
