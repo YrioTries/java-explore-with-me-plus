@@ -33,6 +33,7 @@ public class AdminUserController {
                                      @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
                                      @Positive @RequestParam(defaultValue = "10") Integer size) {
         log.info("В контроллер админа пришёл запрос на получение списка пользователей");
+        log.info("Параметры запроса: ids={}, from={}, size={}", ids, from, size);
         List<UserDto> userDtos = userService.getAllUsers(ids, from, size);
         log.info("Возвращаем список пользователей клиенту. Размер списка: {}", userDtos.size());
         return userDtos;

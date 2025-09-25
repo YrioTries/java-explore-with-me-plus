@@ -2,6 +2,13 @@ package ru.practicum.service.event;
 
 import ru.practicum.dto.event.EventFullDto;
 import ru.practicum.dto.event.EventShortDto;
+import ru.practicum.dto.event.NewEventDto;
+import ru.practicum.dto.request.EventRequestStatusUpdateRequest;
+import ru.practicum.dto.request.EventRequestStatusUpdateResult;
+import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.dto.request.UpdateEventAdminRequest;
+import ru.practicum.dto.request.UpdateEventUserRequest;
+import ru.practicum.enums.State;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,5 +26,28 @@ public interface EventService {
                                                   int size);
 
     EventFullDto getEventByIdByPublicUser(Long id);
+
+    List<EventFullDto> getEventsByAdmin(List<Long> users,
+                                        List<State> states,
+                                        List<Long> categories,
+                                        LocalDateTime rangeStart,
+                                        LocalDateTime rangeEnd,
+                                        Integer from,
+                                        Integer size);
+
+    EventFullDto updateEventOfAdmin(Long eventId, UpdateEventAdminRequest eventAdminRequest);
+
+    List<EventFullDto> getAllUserEvents(Long userId, Integer from, Integer size);
+
+    EventFullDto addNewEvent(Long userId, NewEventDto newEventDto);
+
+    EventFullDto getUserEvent(Long userId, Long eventId);
+
+    EventFullDto updateUserEvent(Long userId, Long eventId, UpdateEventUserRequest eventUserRequest);
+
+    List<ParticipationRequestDto> getRequestsToUserEvent(Long userId, Long eventId);
+
+    EventRequestStatusUpdateResult updateRequestStatusToUserEvent(Long userId, Long eventId,
+                                                                   EventRequestStatusUpdateRequest request);
 
 }
