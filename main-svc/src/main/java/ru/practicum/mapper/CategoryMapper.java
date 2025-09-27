@@ -10,4 +10,14 @@ public interface CategoryMapper {
     CategoryDto toCategoryDto(Category category);
 
     Category toCategory(NewCategoryDto dto);
+
+    default CategoryDto map(Long id) {
+        if (id == null) {
+            return null;
+        }
+
+        CategoryDto dto = new CategoryDto();
+        dto.setId(id);
+        return dto;
+    }
 }

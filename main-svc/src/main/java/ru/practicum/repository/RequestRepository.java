@@ -9,4 +9,11 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
 
     List<Request> findAllByRequesterId(Long userId);
 
+    List<Request> findByEventId(Long eventId);
+
+    boolean existsByRequesterIdAndEventId(Long requesterId, Long eventId);
+
+    List<Request> findAllByIdIn(List<Long> requestIds);
+
+    Long countByEventIdAndStatus(Long eventId, ru.practicum.enums.Status status);
 }

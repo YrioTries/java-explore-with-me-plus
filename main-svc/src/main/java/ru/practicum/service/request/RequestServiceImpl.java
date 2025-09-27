@@ -1,15 +1,23 @@
 package ru.practicum.service.request;
 
+import jakarta.transaction.Transactional;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.request.ParticipationRequestDto;
+import ru.practicum.enums.State;
+import ru.practicum.enums.Status;
 import ru.practicum.exceptions.NotFoundException;
 import ru.practicum.mapper.RequestMapper;
+import ru.practicum.model.Event;
+import ru.practicum.model.Request;
+import ru.practicum.model.User;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.RequestRepository;
 import ru.practicum.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -37,12 +45,64 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto createParticipationRequest(Long userId, Long eventId) {
-        return null;
+        log.info("Сервис получил запрос на создание заявки на участие");
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено"));
+
+        if (event.getInitiator().getId().equals(userId)) {
+            throw new ValidationException("Инициатор события не может подать заявку на участие");
+        }
+
+        if (event.getState() != State.PUBLISHED) {
+            throw new ValidationException("Нельзя участвовать в неопубликованном событии");
+        }
+
+        if (requestRepository.existsByRequesterIdAndEventId(userId, eventId)) {
+            throw new ValidationException("Заявка на участие уже существует");
+        }
+
+        if (event.getParticipantLimit() > 0 &&
+                event.getConfirmedRequests() >= event.getParticipantLimit()) {
+            throw new ValidationException("Достигнут лимит участников");
+        }
+
+        Request request = new Request();
+        request.setRequester(user);
+        request.setEvent(event);
+        request.setCreated(LocalDateTime.now());
+
+        if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
+            request.setStatus(Status.CONFIRMED);
+            event.setConfirmedRequests(event.getConfirmedRequests() + 1);
+            eventRepository.save(event);
+        } else {
+            request.setStatus(Status.PENDING);
+        }
+
+        Request savedRequest = requestRepository.save(request);
+        return requestMapper.toParticipationRequestDto(savedRequest);
     }
 
     @Override
+    @Transactional
     public ParticipationRequestDto cancelParticipationRequest(Long userId, Long requestId) {
-        return null;
+        log.info("Сервис получил запрос на отмену заявки");
+
+        Request request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException("Заявка не найдена"));
+
+        if (!request.getRequester().getId().equals(userId)) {
+            throw new ValidationException("Только автор заявки может её отменить");
+        }
+
+        request.setStatus(Status.CANCELED);
+        Request canceledRequest = requestRepository.save(request);
+
+        return requestMapper.toParticipationRequestDto(canceledRequest);
     }
 }
