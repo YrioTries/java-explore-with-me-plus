@@ -38,30 +38,30 @@ services:
     restart: unless-stopped
 
   main-service:
-    build:
-      context: ./main-svc
-      dockerfile: Dockerfile
-    image: main-svc
-    container_name: main-svc
+    build: ./main-svc
+    image: main-service
+    container_name: main-service
     ports:
       - "8080:8080"
     depends_on:
-      - main-svc-db
+      - ewmdb
+      - stat-server
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-svc-db:5432/main
-      - SPRING_DATASOURCE_USERNAME=dbuser
-      - SPRING_DATASOURCE_PASSWORD=12345
-      - STATS_SERVER_URL=http://stats-server:9090
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewmdb:5432/ewmdb
+      - SPRING_DATASOURCE_USERNAME=ewm
+      - SPRING_DATASOURCE_PASSWORD=ewm
+      - SERVICES_STATSSERVICE_URI=http://stat-server:9090
+    #   - JAVA_OPTS=-Djdk.httpclient.HttpClient.log=errors,requests
 
-  main-svc-db:
-    image: postgres:16.1
-    container_name: main-svc-db
+  ewmdb:
+    image: postgres:14-alpine
+    volumes:
+      - /var/lib/postgresql/data/
+    container_name: ewmdb
     environment:
-      - POSTGRES_DB=main
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=12345
-    ports:
-      - "5433:5432"
+      - POSTGRES_DB=ewmdb
+      - POSTGRES_USER=ewm
+      - POSTGRES_PASSWORD=ewm
 
 volumes:
   stats-db-data:
