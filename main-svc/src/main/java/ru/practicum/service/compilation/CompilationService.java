@@ -8,13 +8,13 @@ import java.util.List;
 
 public interface CompilationService {
 
-    List<CompilationDto> getAllCompilations(Boolean pinned, Integer from, Integer size);
+    List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size);
 
     CompilationDto getCompilationById(Long compId);
 
-    CompilationDto addNewCompilation(NewCompilationDto newCompilationDto);
+    CompilationDto addCompilation(NewCompilationDto newCompilationDto);
 
-    void deleteCompilationById(Long compId);
+    void deleteCompilation(Long compId);
 
     CompilationDto updateCompilation(Long compId, UpdateCompilationRequest newCompilationDto);
 

@@ -1,18 +1,19 @@
 package ru.practicum.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.practicum.enums.State;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import ru.practicum.model.Category;
 import ru.practicum.model.Event;
-import ru.practicum.model.Request;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-public interface EventRepository extends JpaRepository<Event, Long> {
+public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecificationExecutor<Event> {
 
-    Optional<Event> findEventByIdAndState(Long id, State state);
+    Optional<Event> findByInitiatorIdAndId(Long userId, Long eventId);
 
-    Set<Event> findAllByIdIn(Set<Long> events);
+    List<Event> findByCategory(Category category);
+
+    List<Event> findAllByIdIn(List<Long> ids);
 
 }

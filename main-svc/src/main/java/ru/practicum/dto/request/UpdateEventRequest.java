@@ -1,10 +1,6 @@
-package ru.practicum.dto.event;
+package ru.practicum.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -13,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.dto.LocationDto;
+import ru.practicum.enums.StateAction;
 
 import java.time.LocalDateTime;
 
@@ -21,35 +18,29 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class NewEventDto {
-    @NotBlank
+public class UpdateEventRequest {
     @Size(min = 20, max = 2000)
     private String annotation;
 
-    @NotNull
-    @Positive
-    private Long category;
+    private Long categoryId;
 
-    @NotBlank
     @Size(min = 20, max = 7000)
     private String description;
 
-    @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
 
-    @NotNull
-    @Valid
     private LocationDto location;
 
-    private boolean paid;
+    private Boolean paid;
 
     @PositiveOrZero
     private Integer participantLimit;
 
-    private boolean requestModeration = true;
+    private Boolean requestModeration;
 
-    @NotBlank
+    private StateAction stateAction;
+
     @Size(min = 3, max = 120)
     private String title;
 }

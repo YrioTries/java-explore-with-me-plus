@@ -1,13 +1,13 @@
 package ru.practicum.service.compilation;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.dto.compilation.CompilationDto;
 import ru.practicum.dto.compilation.NewCompilationDto;
 import ru.practicum.dto.compilation.UpdateCompilationRequest;
 import ru.practicum.exceptions.NotFoundException;
+import ru.practicum.exceptions.ValidationException;
 import ru.practicum.mapper.CompilationMapper;
 import ru.practicum.model.Compilation;
 import ru.practicum.model.Event;
@@ -15,89 +15,82 @@ import ru.practicum.repository.CompilationRepository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.repository.EventRepository;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
-    private final CompilationMapper compilationMapper;
-
     private final EventRepository eventRepository;
 
-    @Override
     @Transactional
-    public CompilationDto addNewCompilation(NewCompilationDto newComp) {
-        log.info("Сервис получил запрос на создание подборки");
-        Compilation compilation = compilationMapper.toCompilation(newComp);
-        compilation.setPinned(Optional.ofNullable(newComp.getPinned()).orElse(false));
-        Set<Long> eventsId = (newComp.getEvents() != null) ? newComp.getEvents() : Collections.emptySet();
-        Set<Event> events = eventRepository.findAllByIdIn(eventsId);
-        compilation.setEvents(events);
-        Compilation compToReturn = compilationRepository.save(compilation);
-        log.info("Подборка была успешно сохранена в БД. Её id={}", compToReturn.getId());
-        return compilationMapper.toCompilationDto(compToReturn);
+    @Override
+    public CompilationDto addCompilation(NewCompilationDto compilationDto) {
+        Compilation compilation = CompilationMapper.toCompilation(compilationDto);
+        compilation.setPinned(Optional.ofNullable(compilation.getPinned()).orElse(false));
+        Set<Long> compEventIds = (compilationDto.getEvents() != null) ? compilationDto.getEvents() : Collections.emptySet();
+        List<Long> eventIds = new ArrayList<>(compEventIds);
+        List<Event> events = eventRepository.findAllByIdIn(eventIds);
+        Set<Event> eventsSet = new HashSet<>(events);
+        compilation.setEvents(eventsSet);
+        Compilation compilationAfterSave = compilationRepository.save(compilation);
+        return CompilationMapper.toCompilationDto(compilationAfterSave);
     }
 
-    @Override
     @Transactional
-    public void deleteCompilationById(Long compId) {
-        log.info("Сервис получил запрос на удаление подборки");
-        if (!compilationRepository.existsById(compId)) {
-            log.error("Подборки с id {} нет в БД", compId);
-            throw new NotFoundException("Подборки с id " + compId + " нет в БД. Удаление невозможно");
+    @Override
+    public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest update) {
+        Compilation compilation = checkCompilation(compId);
+        Set<Long> eventIds = update.getEvents();
+        if (eventIds != null) {
+            List<Event> events = eventRepository.findAllByIdIn(new ArrayList<>(eventIds));
+            Set<Event> eventSet = new HashSet<>(events);
+            compilation.setEvents(eventSet);
         }
+        compilation.setPinned(Optional.ofNullable(update.getPinned()).orElse(compilation.getPinned()));
+        if (compilation.getTitle().isBlank()) {
+            throw new ValidationException("Title не может состоять из пробелов");
+        }
+        compilation.setTitle(Optional.ofNullable(update.getTitle()).orElse(compilation.getTitle()));
+
+        return CompilationMapper.toCompilationDto(compilation);
+    }
+
+    @Transactional
+    @Override
+    public void deleteCompilation(Long compId) {
+        checkCompilation(compId);
         compilationRepository.deleteById(compId);
-        log.info("Подборка была успешно удалена из БД");
     }
 
     @Override
-    @Transactional
-    public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest dto) {
-        log.info("Сервис получил запрос на редактирование подборки");
-        Compilation compilation = compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException("Подборки с id " + compId + " нет в БД"));
-        Set<Long> eventsId = dto.getEvents();
-        if (eventsId != null && !eventsId.isEmpty()) {
-            log.info("Обновляем подборку новыми ивентами");
-            compilation.setEvents(eventRepository.findAllByIdIn(eventsId));
-        }
-        Optional.ofNullable(dto.getTitle()).ifPresent(compilation::setTitle);
-        Optional.ofNullable(dto.getPinned()).ifPresent(compilation::setPinned);
-        Compilation updatedComp = compilationRepository.save(compilation);
-        log.info("Подборка с id {} успешно обновлена", compId);
-        return compilationMapper.toCompilationDto(updatedComp);
-    }
-
-    @Override
-    public List<CompilationDto> getAllCompilations(Boolean pinned, Integer from, Integer size) {
-        log.info("Сервис получил запрос на получение списка подборок");
+    public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
         PageRequest pageRequest = PageRequest.of(from, size);
-        if (pinned != null) {
-            log.info("Получаем из БД подборки, у которых поле pinned={}", pinned);
-            return compilationRepository.findAllByPinned(pinned, pageRequest)
-                    .stream()
-                    .map(compilationMapper::toCompilationDto)
-                    .toList();
+        List<Compilation> compilations;
+        if (pinned == null) {
+            compilations = compilationRepository.findAll(pageRequest).getContent();
         } else {
-            log.info("Получаем из БД все подборки");
-            return compilationRepository.findAll(pageRequest)
-                    .stream()
-                    .map(compilationMapper::toCompilationDto)
-                    .toList();
+            compilations = compilationRepository.findAllByPinned(pinned, pageRequest);
         }
+        return compilations.stream()
+                .map(CompilationMapper::toCompilationDto)
+                .collect(Collectors.toList());
     }
+
 
     @Override
     public CompilationDto getCompilationById(Long compId) {
-        log.info("Сервис получил запрос на получение подборки");
-        Compilation compilation = compilationRepository.findById(compId)
-                .orElseThrow(() -> new NotFoundException("Подборки с id " + compId + " нет в БД"));
-        log.info("Подборка получена из БД и передаётся в контроллер");
-        return compilationMapper.toCompilationDto(compilation);
+        return CompilationMapper.toCompilationDto(checkCompilation(compId));
+    }
+    private Compilation checkCompilation(Long compId) {
+        return compilationRepository.findById(compId).orElseThrow(
+                () -> new NotFoundException("Compilation с id = " + compId + " не найден"));
     }
 }

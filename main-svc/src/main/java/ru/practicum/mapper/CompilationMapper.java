@@ -1,15 +1,29 @@
 package ru.practicum.mapper;
 
-import org.mapstruct.Mapper;
+import lombok.experimental.UtilityClass;
 import ru.practicum.dto.compilation.CompilationDto;
 import ru.practicum.dto.compilation.NewCompilationDto;
 import ru.practicum.model.Compilation;
 
-@Mapper(componentModel = "spring")
-public interface CompilationMapper {
-    // Здесь пока не маппится множество с сущностями Event,
-    // для этого нужно создать маппер EventMapper, мапящий Event в EventShortDto
-    CompilationDto toCompilationDto(Compilation compilation);
+import java.util.stream.Collectors;
 
-    Compilation toCompilation(NewCompilationDto newCompilationDto);
+@UtilityClass
+public class CompilationMapper {
+    public CompilationDto toCompilationDto(Compilation compilation) {
+        return CompilationDto.builder()
+                .id(compilation.getId())
+                .events(compilation.getEvents().stream()
+                        .map(EventMapper::toEventShortDto)
+                        .collect(Collectors.toSet()))
+                .pinned(compilation.getPinned())
+                .title(compilation.getTitle())
+                .build();
+    }
+
+    public Compilation toCompilation(NewCompilationDto compilationDto) {
+        return Compilation.builder()
+                .pinned(compilationDto.getPinned())
+                .title(compilationDto.getTitle())
+                .build();
+    }
 }

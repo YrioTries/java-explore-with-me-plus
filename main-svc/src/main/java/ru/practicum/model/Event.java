@@ -1,69 +1,51 @@
 package ru.practicum.model;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import ru.practicum.enums.State;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "events")
+@Builder
+@Entity(name = "events")
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "event_id")
     private Long id;
-
-    private String title;
-
-    @Column(name = "annotation", length = 2000)
+    @Column(name = "annotation", nullable = false, length = 2000)
     private String annotation;
-
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
-
-    @Transient
-    private Long views;
-
-    @Column(name = "confirmed_requests")
-    private Long confirmedRequests;
-
-    @Column(name = "created_on", nullable = false)
-    private LocalDateTime createdOn;
-
-    @Column(name = "published_on")
-    private LocalDateTime publishedOn;
-
+    @Column(name = "create_date")
+    private LocalDateTime createdDate;
     @Column(name = "description", length = 7000)
     private String description;
-
-    @Column(name = "event_date")
+    @Column(name = "event_date", nullable = false)
     private LocalDateTime eventDate;
-
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "initiator_id")
     private User initiator;
-
-    private Float lat;
-
-    private Float lon;
-
-    private Boolean paid;
-
-    @Enumerated(value = EnumType.STRING)
-    private State state;
-
+    @ManyToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "location_id")
+    private Location location;
+    @Column(name = "paid")
+    private boolean paid;
     @Column(name = "participant_limit")
     private int participantLimit;
-
+    @Column(name = "published_date")
+    private LocalDateTime publisherDate;
     @Column(name = "request_moderation")
-    private Boolean requestModeration;
+    private boolean requestModeration;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private State eventStatus;
+    @Column(name = "title", nullable = false, length = 120)
+    private String title;
 }
