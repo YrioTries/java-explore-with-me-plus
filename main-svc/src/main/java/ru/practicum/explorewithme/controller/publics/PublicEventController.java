@@ -1,5 +1,8 @@
 package ru.practicum.explorewithme.controller.publics;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -26,14 +29,16 @@ public class PublicEventController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
             @RequestParam(defaultValue = "false") Boolean onlyAvailable,
             @RequestParam(required = false) String sort,
-            @RequestParam(defaultValue = "0") int from,
-            @RequestParam(defaultValue = "10") int size) {
+            @PositiveOrZero @RequestParam(defaultValue = "0") int from,
+            @Positive @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest httpRequest) {
         return publicEventService.getEventsPublic(text, categories, paid, rangeStart, rangeEnd,
-                onlyAvailable, sort, PageRequest.of(from / size, size));
+                onlyAvailable, sort, PageRequest.of(from / size, size), httpRequest);
     }
 
     @GetMapping("/{id}")
-    public EventFullDto getEventById(@PathVariable Long id) {
-        return publicEventService.getEventById(id);
+    public EventFullDto getEventById(@Positive @PathVariable Long id,
+                                     HttpServletRequest httpRequest) {
+        return publicEventService.getEventById(id, httpRequest);
     }
 }
