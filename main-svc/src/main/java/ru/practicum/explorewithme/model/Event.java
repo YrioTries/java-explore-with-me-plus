@@ -48,8 +48,9 @@ public class Event {
     @ManyToOne
     @JoinColumn(name = "initiator_id")
     User initiator;
-    Float lat;
-    Float lon;
+
+    @Embedded
+    Location location;
     Boolean paid;
 
     @Column(name = "participant_limit")

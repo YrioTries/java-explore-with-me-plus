@@ -21,12 +21,12 @@ public interface EventMapper {
     @Mapping(target = "views", ignore = true)
     Event toEvent(NewEventDto newEventDto);
 
-    @Mapping(target = "category", ignore = true)
-    @Mapping(target = "initiator", ignore = true)
+    @Mapping(target = "category")
+    @Mapping(target = "initiator")
     EventFullDto toEventFullDto(Event event);
 
-    @Mapping(target = "category", ignore = true)
-    @Mapping(target = "initiator", ignore = true)
+    @Mapping(target = "category")
+    @Mapping(target = "initiator")
     EventShortDto toEventShortDto(Event event);
 
     default Location toLocation(LocationDto dto) {

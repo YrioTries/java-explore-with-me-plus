@@ -9,11 +9,13 @@ import ru.practicum.explorewithme.dto.event.EventShortDto;
 import ru.practicum.explorewithme.dto.event.NewEventDto;
 import ru.practicum.explorewithme.dto.event.UpdateEventUserRequest;
 import ru.practicum.explorewithme.enums.EventState;
+import ru.practicum.explorewithme.exception.BadRequestException;
 import ru.practicum.explorewithme.exception.ConflictException;
 import ru.practicum.explorewithme.exception.NotFoundException;
 import ru.practicum.explorewithme.mapper.EventMapper;
 import ru.practicum.explorewithme.model.Category;
 import ru.practicum.explorewithme.model.Event;
+import ru.practicum.explorewithme.model.Location;
 import ru.practicum.explorewithme.model.User;
 import ru.practicum.explorewithme.repository.CategoryRepository;
 import ru.practicum.explorewithme.repository.EventRepository;
@@ -46,29 +48,31 @@ public class PrivateEventServiceImpl implements PrivateEventService {
     @Override
     public EventFullDto createEvent(Long userId, NewEventDto newEventDto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         Category category = categoryRepository.findById(newEventDto.getCategory())
-                .orElseThrow(() -> new NotFoundException("Category not found"));
+                .orElseThrow(() -> new NotFoundException("Категория не найдена"));
 
         if (newEventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ConflictException("Event date must be at least 2 hours from now");
+            throw new BadRequestException("До даты мероприятия должно быть не менее 2 часов");
         }
 
         Event event = eventMapper.toEvent(newEventDto);
         event.setInitiator(user);
+        event.setConfirmedRequests(0);
         event.setCategory(category);
         event.setCreatedOn(LocalDateTime.now());
         event.setState(EventState.PENDING);
 
         if (newEventDto.getLocation() != null) {
-            ru.practicum.explorewithme.model.Location location =
+            Location location =
                     eventMapper.toLocation(newEventDto.getLocation());
-            event.setLat(location.getLat());
-            event.setLon(location.getLon());
+            event.setLocation(location);
         }
 
         Event savedEvent = eventRepository.save(event);
-        return eventMapper.toEventFullDto(savedEvent);
+        EventFullDto eventFullDto = eventMapper.toEventFullDto(savedEvent);
+        eventFullDto.setLocation(newEventDto.getLocation());
+        return eventFullDto;
     }
 
     @Transactional(readOnly = true)
@@ -99,7 +103,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
 
         if (updateRequest.getEventDate() != null &&
                 updateRequest.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ConflictException("Event date must be at least 2 hours from now");
+            throw new BadRequestException("Event date must be at least 2 hours from now");
         }
 
         if (updateRequest.getStateAction() != null) {
@@ -131,10 +135,7 @@ public class PrivateEventServiceImpl implements PrivateEventService {
             event.setEventDate(updateRequest.getEventDate());
         }
         if (updateRequest.getLocation() != null) {
-            ru.practicum.explorewithme.model.Location location =
-                    eventMapper.toLocation(updateRequest.getLocation());
-            event.setLat(location.getLat());
-            event.setLon(location.getLon());
+            event.setLocation(eventMapper.toLocation(updateRequest.getLocation()));
         }
         if (updateRequest.getPaid() != null) {
             event.setPaid(updateRequest.getPaid());

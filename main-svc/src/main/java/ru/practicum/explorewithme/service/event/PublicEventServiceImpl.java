@@ -12,6 +12,7 @@ import ru.practicum.StatsClient;
 import ru.practicum.explorewithme.dto.event.EventFullDto;
 import ru.practicum.explorewithme.dto.event.EventShortDto;
 import ru.practicum.explorewithme.enums.EventState;
+import ru.practicum.explorewithme.exception.BadRequestException;
 import ru.practicum.explorewithme.exception.ConflictException;
 import ru.practicum.explorewithme.exception.NotFoundException;
 import ru.practicum.explorewithme.mapper.EventMapper;
@@ -71,6 +72,7 @@ public class PublicEventServiceImpl implements PublicEventService {
         if (event.getState() != EventState.PUBLISHED) {
             throw new NotFoundException("Event not found");
         }
+
         statsClient.hit(EndpointHitDto
                 .builder()
                 .app("ewm-service")
@@ -110,7 +112,7 @@ public class PublicEventServiceImpl implements PublicEventService {
     private void verifyRange(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
         if (rangeStart != null && rangeEnd != null) {
             if (rangeStart.isAfter(rangeEnd)) {
-                throw new ConflictException("Дата начала ивента не может быть позже даты окончания");
+                throw new BadRequestException("Дата начала ивента не может быть позже даты окончания");
             }
         }
     }

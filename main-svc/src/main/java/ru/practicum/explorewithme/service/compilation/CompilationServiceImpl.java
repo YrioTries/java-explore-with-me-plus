@@ -30,10 +30,13 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto createCompilation(NewCompilationDto newCompilationDto) {
         Compilation compilation = compilationMapper.toCompilation(newCompilationDto);
 
+        Set<Event> events;
         if (newCompilationDto.getEvents() != null && !newCompilationDto.getEvents().isEmpty()) {
-            Set<Event> events = new HashSet<>(eventRepository.findAllById(newCompilationDto.getEvents()));
-            compilation.setEvents(events);
+            events = new HashSet<>(eventRepository.findAllById(newCompilationDto.getEvents()));
+        } else {
+            events = new HashSet<>();
         }
+        compilation.setEvents(events);
 
         Compilation savedCompilation = compilationRepository.save(compilation);
         return compilationMapper.toCompilationDto(savedCompilation);

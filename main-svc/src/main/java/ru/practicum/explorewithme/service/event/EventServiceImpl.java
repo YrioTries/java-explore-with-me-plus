@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.StatResponseDto;
+import ru.practicum.StatsClient;
 import ru.practicum.explorewithme.dto.event.EventFullDto;
 import ru.practicum.explorewithme.dto.event.UpdateEventAdminRequest;
 import ru.practicum.explorewithme.enums.EventState;
@@ -17,7 +19,10 @@ import ru.practicum.explorewithme.repository.EventRepository;
 import ru.practicum.explorewithme.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +31,8 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final EventMapper eventMapper;
+
+    private final StatsClient statsClient;
 
     @Transactional(readOnly = true)
     @Override
@@ -42,9 +49,21 @@ public class EventServiceImpl implements EventService {
         if (rangeStart == null) rangeStart = LocalDateTime.now();
         if (rangeEnd == null) rangeEnd = LocalDateTime.now().plusYears(100);
 
-        return eventRepository.findEventsByAdmin(users, eventStates, categories, rangeStart, rangeEnd, pageable)
-                .map(eventMapper::toEventFullDto)
+        // Получаем события
+        List<Event> events = eventRepository.findEventsByAdmin(users, eventStates, categories, rangeStart, rangeEnd, pageable)
                 .getContent();
+
+        // Получаем статистику просмотров для всех событий
+        Map<Long, Long> views = getEventsViews(events);
+
+        // Маппим и устанавливаем просмотры
+        return events.stream()
+                .map(event -> {
+                    EventFullDto dto = eventMapper.toEventFullDto(event);
+                    dto.setViews(views.getOrDefault(event.getId(), 0L));
+                    return dto;
+                })
+                .toList();
     }
 
     @Transactional
@@ -94,8 +113,7 @@ public class EventServiceImpl implements EventService {
         if (updateRequest.getLocation() != null) {
             ru.practicum.explorewithme.model.Location location =
                     eventMapper.toLocation(updateRequest.getLocation());
-            event.setLat(location.getLat());
-            event.setLon(location.getLon());
+            event.setLocation(location);
         }
         if (updateRequest.getPaid() != null) {
             event.setPaid(updateRequest.getPaid());
@@ -109,5 +127,28 @@ public class EventServiceImpl implements EventService {
         if (updateRequest.getTitle() != null) {
             event.setTitle(updateRequest.getTitle());
         }
+    }
+
+    private Map<Long, Long> getEventsViews(List<Event> events) {
+        List<String> uris = events
+                .stream()
+                .map(event -> String.format("/events/%s", event.getId()))
+                .toList();
+        LocalDateTime startDate = events
+                .stream()
+                .map(Event::getCreatedOn)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+        Map<Long, Long> viewStats = new HashMap<>();
+        if (startDate != null) {
+            List<StatResponseDto> stats = statsClient.getStats(startDate, LocalDateTime.now(),
+                    uris, true);
+            viewStats = stats
+                    .stream()
+                    .filter(s -> s.getUri().startsWith("/events/"))
+                    .collect(Collectors.toMap(s -> Long.parseLong(s.getUri().substring("/events/".length())),
+                            StatResponseDto::getHits));
+        }
+        return viewStats;
     }
 }
