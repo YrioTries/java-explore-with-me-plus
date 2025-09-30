@@ -94,7 +94,8 @@ public class EventServiceImpl implements EventService {
         if (updateRequest.getLocation() != null) {
             ru.practicum.explorewithme.model.Location location =
                     eventMapper.toLocation(updateRequest.getLocation());
-            event.setLocation(location);
+            event.setLat(location.getLat());
+            event.setLon(location.getLon());
         }
         if (updateRequest.getPaid() != null) {
             event.setPaid(updateRequest.getPaid());

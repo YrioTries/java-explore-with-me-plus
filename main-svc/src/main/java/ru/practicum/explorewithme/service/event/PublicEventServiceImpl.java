@@ -17,7 +17,6 @@ import ru.practicum.explorewithme.exception.NotFoundException;
 import ru.practicum.explorewithme.mapper.EventMapper;
 import ru.practicum.explorewithme.model.Event;
 import ru.practicum.explorewithme.repository.EventRepository;
-import ru.practicum.explorewithme.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -31,7 +30,6 @@ import java.util.stream.Collectors;
 public class PublicEventServiceImpl implements PublicEventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
-    private final ParticipationRequestRepository participationRequestRepository;
 
     private final StatsClient statsClient;
 

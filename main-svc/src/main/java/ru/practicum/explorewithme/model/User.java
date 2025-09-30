@@ -2,21 +2,26 @@ package ru.practicum.explorewithme.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
+@Entity
+@Table(name = "users")
+@ToString
 @Getter
 @Setter
-@Entity
-@NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder(toBuilder = true)
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "user_id")
+    Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(unique = true)
+    String email;
 
-    @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    String name;
 }

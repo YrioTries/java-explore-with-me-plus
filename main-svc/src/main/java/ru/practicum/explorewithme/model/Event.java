@@ -1,68 +1,66 @@
 package ru.practicum.explorewithme.model;
 
-import ru.practicum.explorewithme.enums.EventState;
 import jakarta.persistence.*;
 import lombok.*;
+import ru.practicum.explorewithme.enums.EventState;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Entity
+@Table(name = "events")
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "events")
+@Builder
+@Getter
+@Setter
 public class Event {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "event_id")
+    Long id;
 
-    @Column(name = "annotation", nullable = false, length = 2000)
-    private String annotation;
+    @Column(name = "annotation", length = 2000)
+    String annotation;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    Category category;
+
+    @Transient
+    private Long views;
 
     @Column(name = "confirmed_requests")
-    private Integer confirmedRequests = 0;
+    Integer confirmedRequests;
 
-    @Column(name = "created_on")
-    private LocalDateTime createdOn;
-
-    @Column(name = "description", length = 7000)
-    private String description;
-
-    @Column(name = "event_date", nullable = false)
-    private LocalDateTime eventDate;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "initiator_id", nullable = false)
-    private User initiator;
-
-    @Embedded
-    private Location location;
-
-    @Column(name = "paid", nullable = false)
-    private Boolean paid = false;
-
-    @Column(name = "participant_limit")
-    private Integer participantLimit = 0;
+    @Column(name = "created_on", nullable = false)
+    LocalDateTime createdOn;
 
     @Column(name = "published_on")
-    private LocalDateTime publishedOn;
+    LocalDateTime publishedOn;
+
+    @Column(name = "description", length = 7000)
+    String description;
+
+    @Column(name = "event_date")
+    LocalDateTime eventDate;
+
+    @ManyToOne
+    @JoinColumn(name = "initiator_id")
+    User initiator;
+    Float lat;
+    Float lon;
+    Boolean paid;
+
+    @Column(name = "participant_limit")
+    Integer participantLimit;
+
+    @Enumerated(value = EnumType.STRING)
+    EventState state;
 
     @Column(name = "request_moderation")
-    private Boolean requestModeration = true;
+    Boolean requestModeration;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "state")
-    private EventState state = EventState.PENDING;
-
-    @Column(name = "title", nullable = false, length = 120)
-    private String title;
-
-    @Column(name = "views")
-    private Long views = 0L;
+    String title;
 }
 

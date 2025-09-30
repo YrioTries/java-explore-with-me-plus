@@ -2,18 +2,22 @@ package ru.practicum.explorewithme.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
+@Entity
+@Table(name = "categories")
+@ToString
 @Getter
 @Setter
-@Entity
-@NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "categories")
+@NoArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder(toBuilder = true)
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "name", nullable = false, unique = true)
-    private String name;
+    @Column(name = "category_id")
+    Long id;
+    @Column(nullable = false, unique = true)
+    String name;
 }

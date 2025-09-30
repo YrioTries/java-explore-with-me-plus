@@ -1,17 +1,15 @@
 package ru.practicum.explorewithme.model;
 
-import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-@Embeddable
-@Getter
-@Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@Getter
+@Setter
 public class Location {
-    @Column(name = "lat")
-    private Float lat;
-
-    @Column(name = "lon")
-    private Float lon;
+    Float lat;
+    Float lon;
 }

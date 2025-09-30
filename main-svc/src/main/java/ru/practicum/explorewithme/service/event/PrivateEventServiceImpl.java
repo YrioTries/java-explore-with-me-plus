@@ -63,7 +63,8 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         if (newEventDto.getLocation() != null) {
             ru.practicum.explorewithme.model.Location location =
                     eventMapper.toLocation(newEventDto.getLocation());
-            event.setLocation(location);
+            event.setLat(location.getLat());
+            event.setLon(location.getLon());
         }
 
         Event savedEvent = eventRepository.save(event);
@@ -132,7 +133,8 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         if (updateRequest.getLocation() != null) {
             ru.practicum.explorewithme.model.Location location =
                     eventMapper.toLocation(updateRequest.getLocation());
-            event.setLocation(location);
+            event.setLat(location.getLat());
+            event.setLon(location.getLon());
         }
         if (updateRequest.getPaid() != null) {
             event.setPaid(updateRequest.getPaid());

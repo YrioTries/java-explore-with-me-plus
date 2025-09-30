@@ -1,29 +1,32 @@
 package ru.practicum.explorewithme.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.Set;
 
+@Entity
+@Table(name = "compilations")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@Entity
-@NoArgsConstructor
-@AllArgsConstructor
-@Table(name = "compilations")
+@EqualsAndHashCode(of = "id")
 public class Compilation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "compilation_id")
+    Long id;
+    Boolean pinned;
+
+    @Size(max = 50)
+    @Column(name = "title", nullable = false)
+    String title;
 
     @ManyToMany
-    @JoinTable(name = "compilation_events", joinColumns = @JoinColumn(name = "compilation_id"),
+    @JoinTable(joinColumns = @JoinColumn(name = "compilation_id"),
             inverseJoinColumns = @JoinColumn(name = "event_id"))
-    private Set<Event> events;
-
-    @Column(name = "pinned", nullable = false)
-    private Boolean pinned = false;
-
-    @Column(name = "title", nullable = false, length = 50)
-    private String title;
+    Set<Event> events;
 }
