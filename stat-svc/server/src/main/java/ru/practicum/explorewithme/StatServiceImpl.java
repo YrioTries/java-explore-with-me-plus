@@ -27,6 +27,10 @@ public class StatServiceImpl implements StatService {
     @Override
     public List<StatResponseDto> getStats(LocalDateTime start, LocalDateTime end,
                                           List<String> uris, Boolean unique) {
+        if (start.isAfter(end)) {
+            throw new ValidationException("Start date is after end date");
+        }
+
         if (unique) {
             if (uris == null || uris.isEmpty()) {
                 return statRepository.findUniqueStats(start, end);

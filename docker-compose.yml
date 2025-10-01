@@ -13,7 +13,6 @@ services:
     volumes:
       - stats-db-data:/var/lib/postgresql/data
       - ./stat-svc/server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./stat-svc/server/src/main/resources/data.sql:/docker-entrypoint-initdb.d/02-data.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dbuser -d explorewithme"]
       interval: 10s
@@ -37,31 +36,44 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  main-service:
-    build:
-      context: ./main-svc
-      dockerfile: Dockerfile
-    image: main-svc
-    container_name: main-svc
-    ports:
-      - "8080:8080"
-    depends_on:
-      - main-svc-db
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-svc-db:5432/main
-      - SPRING_DATASOURCE_USERNAME=dbuser
-      - SPRING_DATASOURCE_PASSWORD=12345
-      - STATS_SERVER_URL=http://stats-server:9090
-
   main-svc-db:
     image: postgres:16.1
     container_name: main-svc-db
     environment:
-      - POSTGRES_DB=main
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=12345
+      POSTGRES_DB: main
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: 12345
     ports:
       - "5433:5432"
+    volumes:
+      - main-db-data:/var/lib/postgresql/data
+      - ./main-svc/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dbuser -d main"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  main-service:
+    build:
+      context: ./main-svc
+      dockerfile: Dockerfile
+    container_name: main-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      main-svc-db:
+        condition: service_healthy
+      stats-server:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://main-svc-db:5432/main
+      SPRING_DATASOURCE_USERNAME: dbuser
+      SPRING_DATASOURCE_PASSWORD: 12345
+      SPRING_PROFILES_ACTIVE: docker
+      STATS_SERVER_URL: http://stats-server:9090
+    restart: unless-stopped
 
 volumes:
   stats-db-data:
+  main-db-data:
