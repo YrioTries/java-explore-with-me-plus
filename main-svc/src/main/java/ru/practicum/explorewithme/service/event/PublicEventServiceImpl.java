@@ -97,7 +97,11 @@ public class PublicEventServiceImpl implements PublicEventService {
                 .orElse(null);
         Map<Long, Long> viewStats = new HashMap<>();
         if (startDate != null) {
-            List<StatResponseDto> stats = statsClient.getStats(startDate, LocalDateTime.now(),
+            LocalDateTime endDate = LocalDateTime.now();
+            if (startDate.isAfter(endDate)) {
+                throw new BadRequestException("Start date is after end date");
+            }
+            List<StatResponseDto> stats = statsClient.getStats(startDate, endDate,
                     uris, true);
             viewStats = stats
                     .stream()
