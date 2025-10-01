@@ -2,6 +2,7 @@ package ru.practicum.explorewithme.service.event;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatResponseDto;
@@ -9,14 +10,18 @@ import ru.practicum.StatsClient;
 import ru.practicum.explorewithme.dto.event.EventFullDto;
 import ru.practicum.explorewithme.dto.event.UpdateEventAdminRequest;
 import ru.practicum.explorewithme.enums.EventState;
+import ru.practicum.explorewithme.enums.RequestStatus;
 import ru.practicum.explorewithme.exception.ConflictException;
 import ru.practicum.explorewithme.exception.NotFoundException;
+import ru.practicum.explorewithme.mapper.CategoryMapper;
 import ru.practicum.explorewithme.mapper.EventMapper;
+import ru.practicum.explorewithme.mapper.UserMapper;
 import ru.practicum.explorewithme.model.Category;
 import ru.practicum.explorewithme.model.Event;
+import ru.practicum.explorewithme.model.ParticipationRequest;
 import ru.practicum.explorewithme.repository.CategoryRepository;
 import ru.practicum.explorewithme.repository.EventRepository;
-import ru.practicum.explorewithme.repository.UserRepository;
+import ru.practicum.explorewithme.repository.ParticipationRequestRepository;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -29,8 +34,11 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
+    private final ParticipationRequestRepository requestRepository;
+
     private final EventMapper eventMapper;
+    private final CategoryMapper categoryMapper;
+    private final UserMapper userMapper;
 
     private final StatsClient statsClient;
 
@@ -39,31 +47,36 @@ public class EventServiceImpl implements EventService {
     public List<EventFullDto> getEventsForAdmin(List<Long> users, List<String> states,
                                                 List<Long> categories, LocalDateTime rangeStart,
                                                 LocalDateTime rangeEnd, Pageable pageable) {
-        List<EventState> eventStates = null;
-        if (states != null) {
-            eventStates = states.stream()
-                    .map(EventState::valueOf)
-                    .toList();
+        Specification<Event> spec = Specification.where(null);
+        if (users != null && !users.isEmpty()) {
+            spec = spec.and(((root, query, criteriaBuilder) ->
+                    root.get("initiator").get("id").in(users)));
         }
-
-        if (rangeStart == null) rangeStart = LocalDateTime.now();
-        if (rangeEnd == null) rangeEnd = LocalDateTime.now().plusYears(100);
-
-        // Получаем события
-        List<Event> events = eventRepository.findEventsByAdmin(users, eventStates, categories, rangeStart, rangeEnd, pageable)
-                .getContent();
-
-        // Получаем статистику просмотров для всех событий
+        if (states != null && !states.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    root.get("state").as(String.class).in(states));
+        }
+        if (categories != null && !categories.isEmpty()) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    root.get("category").get("id").in(categories));
+        }
+        if (rangeEnd != null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.lessThanOrEqualTo(root.get("eventDate"), rangeEnd));
+        }
+        if (rangeStart != null) {
+            spec = spec.and((root, query, criteriaBuilder) ->
+                    criteriaBuilder.greaterThanOrEqualTo(root.get("eventDate"), rangeStart));
+        }
+        List<Event> events = eventRepository.findAll(spec, pageable).toList();
         Map<Long, Long> views = getEventsViews(events);
-
-        // Маппим и устанавливаем просмотры
+        Map<Long, List<ParticipationRequest>> confRequests = getConfirmedRequestsCount(events);
         return events.stream()
-                .map(event -> {
-                    EventFullDto dto = eventMapper.toEventFullDto(event);
-                    dto.setViews(views.getOrDefault(event.getId(), 0L));
-                    return dto;
-                })
+                .map(e -> eventMapper.toEventFullDtoWithDetails(e, categoryMapper, userMapper))
+                .peek(dto -> dto.setViews(views.getOrDefault(dto.getId(), 0L)))
+                .peek(dto -> dto.setConfirmedRequests((confRequests.getOrDefault(dto.getId(), List.of())).size()))
                 .toList();
+
     }
 
     @Transactional
@@ -151,4 +164,11 @@ public class EventServiceImpl implements EventService {
         }
         return viewStats;
     }
+
+    private Map<Long, List<ParticipationRequest>> getConfirmedRequestsCount(List<Event> events) {
+        List<ParticipationRequest> requests = requestRepository.findAllByEventIdInAndStatus(events
+                .stream().map(Event::getId).collect(Collectors.toList()), RequestStatus.CONFIRMED);
+        return requests.stream().collect(Collectors.groupingBy(r -> r.getEvent().getId()));
+    }
+
 }

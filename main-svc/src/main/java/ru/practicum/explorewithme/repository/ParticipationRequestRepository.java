@@ -28,4 +28,6 @@ public interface ParticipationRequestRepository extends JpaRepository<Participat
     Long countConfirmedRequestsByEventId(@Param("eventId") Long eventId);
 
     List<ParticipationRequest> findByEventIdAndStatus(Long eventId, RequestStatus status);
+
+    List<ParticipationRequest> findAllByEventIdInAndStatus(List<Long> eventIds, RequestStatus status);
 }
