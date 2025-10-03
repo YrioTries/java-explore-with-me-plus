@@ -1,13 +1,16 @@
 package ru.practicum.explorewithme.controller.publics;
 
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.explorewithme.dto.category.CategoryDto;
 import ru.practicum.explorewithme.service.category.CategoryService;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/categories")
 @RequiredArgsConstructor
@@ -21,7 +24,7 @@ public class PublicCategoryController {
     }
 
     @GetMapping("/{catId}")
-    public CategoryDto getCategoryById(@PathVariable Long catId) {
+    public CategoryDto getCategoryById(@PathVariable @Positive Long catId) {
         return categoryService.getCategoryById(catId);
     }
 }

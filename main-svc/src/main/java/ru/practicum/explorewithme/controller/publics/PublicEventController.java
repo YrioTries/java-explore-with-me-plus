@@ -6,6 +6,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.explorewithme.dto.event.EventFullDto;
 import ru.practicum.explorewithme.dto.event.EventShortDto;
@@ -14,6 +15,7 @@ import ru.practicum.explorewithme.service.event.PublicEventService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
@@ -37,7 +39,7 @@ public class PublicEventController {
     }
 
     @GetMapping("/{id}")
-    public EventFullDto getEventById(@Positive @PathVariable Long id,
+    public EventFullDto getEventById(@PathVariable @Positive Long id,
                                      HttpServletRequest httpRequest) {
         return publicEventService.getEventById(id, httpRequest);
     }
