@@ -1,9 +1,11 @@
 package ru.practicum.explorewithme.controller.admin;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.explorewithme.dto.event.EventFullDto;
 import ru.practicum.explorewithme.dto.event.UpdateEventAdminRequest;
@@ -12,6 +14,7 @@ import ru.practicum.explorewithme.service.event.EventService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/admin/events")
 @RequiredArgsConstructor
@@ -32,7 +35,7 @@ public class AdminEventController {
     }
 
     @PatchMapping("/{eventId}")
-    public EventFullDto updateEvent(@PathVariable Long eventId,
+    public EventFullDto updateEvent(@PathVariable @Positive Long eventId,
                                     @RequestBody @Valid UpdateEventAdminRequest updateRequest) {
         return eventService.updateEventByAdmin(eventId, updateRequest);
     }

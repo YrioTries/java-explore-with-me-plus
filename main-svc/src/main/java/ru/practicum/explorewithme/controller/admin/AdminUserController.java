@@ -1,8 +1,10 @@
 package ru.practicum.explorewithme.controller.admin;
 
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.explorewithme.dto.user.NewUserRequest;
 import ru.practicum.explorewithme.dto.user.UserDto;
@@ -11,6 +13,7 @@ import ru.practicum.explorewithme.service.user.UserService;
 import jakarta.validation.Valid;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/admin/users")
 @RequiredArgsConstructor
@@ -32,7 +35,7 @@ public class AdminUserController {
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable Long userId) {
+    public void deleteUser(@PathVariable @Positive Long userId) {
         userService.deleteUser(userId);
     }
 }
