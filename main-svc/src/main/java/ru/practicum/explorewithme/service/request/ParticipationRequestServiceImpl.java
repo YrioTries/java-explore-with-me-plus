@@ -67,7 +67,7 @@ public class ParticipationRequestServiceImpl implements RequestService {
         List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
         List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
 
-        if (updateRequest.getStatus() == RequestStatus.CONFIRMED) {
+        if (updateRequest.getStatus().equals("CONFIRMED")) {
             Long confirmedCount = participationRequestRepository.countConfirmedRequestsByEventId(eventId);
             List<Long> confirmedRequestIds = new ArrayList<>();
             List<Long> rejectedRequestIds = new ArrayList<>();
@@ -95,7 +95,7 @@ public class ParticipationRequestServiceImpl implements RequestService {
 
                 rejectedRequests.addAll(toListOfParticipationRequestDtos(newlyRejectedRequests));
             }
-        } else if (updateRequest.getStatus().equals(RequestStatus.REJECTED)) {
+        } else if (updateRequest.getStatus().equals("REJECTED")) {
             participationRequestRepository.updateStatusForRequests(requestIds, RequestStatus.REJECTED);
             rejectedRequests.addAll(toListOfParticipationRequestDtos(requests));
         }
