@@ -21,6 +21,7 @@ import ru.practicum.explorewithme.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,11 +49,9 @@ public class ParticipationRequestServiceImpl implements RequestService {
 
     @Transactional
     @Override
-    public EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId,
-                                                              EventRequestStatusUpdateRequest updateRequest) {
+    public EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId, EventRequestStatusUpdateRequest updateRequest) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
-
         if (!event.getInitiator().getId().equals(userId)) {
             throw new NotFoundException("Event not found");
         }
@@ -60,51 +59,46 @@ public class ParticipationRequestServiceImpl implements RequestService {
         List<Long> requestIds = new ArrayList<>(updateRequest.getRequestIds());
         List<ParticipationRequest> requests = participationRequestRepository.findByIdIn(requestIds);
 
-        for (ParticipationRequest request : requests) {
+        requests.forEach(request -> {
             if (request.getStatus() != RequestStatus.PENDING) {
                 throw new ConflictException("Request must be in PENDING state");
             }
-        }
+        });
 
         List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
         List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
 
-        if (updateRequest.getStatus().equals("CONFIRMED")) {
+        if (updateRequest.getStatus() == RequestStatus.CONFIRMED) {
             Long confirmedCount = participationRequestRepository.countConfirmedRequestsByEventId(eventId);
+            List<Long> confirmedRequestIds = new ArrayList<>();
+            List<Long> rejectedRequestIds = new ArrayList<>();
 
             for (ParticipationRequest request : requests) {
-                if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
-                    request.setStatus(RequestStatus.CONFIRMED);
-                } else if (confirmedCount < event.getParticipantLimit()) {
-                    request.setStatus(RequestStatus.CONFIRMED);
+                if (event.getParticipantLimit() == 0 || !event.getRequestModeration() || confirmedCount < event.getParticipantLimit()) {
+                    confirmedRequestIds.add(request.getId());
                     confirmedCount++;
                 } else {
-                    request.setStatus(RequestStatus.REJECTED);
-                }
-
-                ParticipationRequest savedRequest = participationRequestRepository.save(request);
-                if (savedRequest.getStatus() == RequestStatus.CONFIRMED) {
-                    confirmedRequests.add(participationRequestMapper.toParticipationRequestDto(savedRequest));
-                } else {
-                    rejectedRequests.add(participationRequestMapper.toParticipationRequestDto(savedRequest));
+                    rejectedRequestIds.add(request.getId());
                 }
             }
+
+            participationRequestRepository.updateStatusForRequests(confirmedRequestIds, RequestStatus.CONFIRMED);
+            participationRequestRepository.updateStatusForRequests(rejectedRequestIds, RequestStatus.REJECTED);
+
+            confirmedRequests.addAll(toListOfParticipationRequestDtos(participationRequestRepository.findByIdIn(confirmedRequestIds)));
+
+            rejectedRequests.addAll(toListOfParticipationRequestDtos(participationRequestRepository.findByIdIn(rejectedRequestIds)));
 
             if (confirmedCount >= event.getParticipantLimit()) {
-                List<ParticipationRequest> pendingRequests = participationRequestRepository
-                        .findByEventIdAndStatus(eventId, RequestStatus.PENDING);
-                for (ParticipationRequest pendingRequest : pendingRequests) {
-                    pendingRequest.setStatus(RequestStatus.REJECTED);
-                    participationRequestRepository.save(pendingRequest);
-                    rejectedRequests.add(participationRequestMapper.toParticipationRequestDto(pendingRequest));
-                }
+                participationRequestRepository.updateStatusForPendingRequests(eventId, RequestStatus.PENDING, RequestStatus.REJECTED);
+                List<ParticipationRequest> newlyRejectedRequests = participationRequestRepository
+                        .findByEventIdAndStatus(eventId, RequestStatus.REJECTED);
+
+                rejectedRequests.addAll(toListOfParticipationRequestDtos(newlyRejectedRequests));
             }
-        } else if (updateRequest.getStatus().equals("REJECTED")) {
-            for (ParticipationRequest request : requests) {
-                request.setStatus(RequestStatus.REJECTED);
-                ParticipationRequest savedRequest = participationRequestRepository.save(request);
-                rejectedRequests.add(participationRequestMapper.toParticipationRequestDto(savedRequest));
-            }
+        } else if (updateRequest.getStatus().equals(RequestStatus.REJECTED)) {
+            participationRequestRepository.updateStatusForRequests(requestIds, RequestStatus.REJECTED);
+            rejectedRequests.addAll(toListOfParticipationRequestDtos(requests));
         }
 
         return new EventRequestStatusUpdateResult(confirmedRequests, rejectedRequests);
@@ -179,5 +173,12 @@ public class ParticipationRequestServiceImpl implements RequestService {
         request.setStatus(RequestStatus.CANCELED);
         ParticipationRequest savedRequest = participationRequestRepository.save(request);
         return participationRequestMapper.toParticipationRequestDto(savedRequest);
+    }
+
+    private List<ParticipationRequestDto> toListOfParticipationRequestDtos(List<ParticipationRequest> requests) {
+        return requests
+                .stream()
+                .map(participationRequestMapper::toParticipationRequestDto)
+                .toList();
     }
 }
