@@ -41,6 +41,17 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleConstraintViolationException(ConstraintViolationException e) {
+        log.debug("Получен статус 400 BAD REQUEST due to constraint violation: {}", e.getMessage());
+        return ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST.toString())
+                .message(e.getMessage())
+                .reason("Request contains invalid data")
+                .build();
+    }
+
     @ExceptionHandler({ConflictException.class, DataIntegrityViolationException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handlerValidationException(Exception e) {
