@@ -5,6 +5,7 @@ import ru.practicum.EndpointHitDto;
 import ru.practicum.StatResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.explorewithme.exceptions.ValidationException;
 
 import java.time.LocalDateTime;
 import java.util.List;
