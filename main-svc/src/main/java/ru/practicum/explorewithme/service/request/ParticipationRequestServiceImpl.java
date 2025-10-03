@@ -49,6 +49,8 @@ public class ParticipationRequestServiceImpl implements RequestService {
     @Transactional
     @Override
     public EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId, EventRequestStatusUpdateRequest updateRequest) {
+        RequestStatus newStatus = parseStatus(updateRequest.getStatus());
+
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
         if (!event.getInitiator().getId().equals(userId)) {
@@ -67,7 +69,7 @@ public class ParticipationRequestServiceImpl implements RequestService {
         List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
         List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
 
-        if (updateRequest.getStatus().equals("CONFIRMED")) {
+        if (newStatus == RequestStatus.CONFIRMED) {
             Long confirmedCount = participationRequestRepository.countConfirmedRequestsByEventId(eventId);
             List<Long> confirmedRequestIds = new ArrayList<>();
             List<Long> rejectedRequestIds = new ArrayList<>();
@@ -95,7 +97,7 @@ public class ParticipationRequestServiceImpl implements RequestService {
 
                 rejectedRequests.addAll(toListOfParticipationRequestDtos(newlyRejectedRequests));
             }
-        } else if (updateRequest.getStatus().equals("REJECTED")) {
+        } else if (newStatus == RequestStatus.REJECTED) {
             participationRequestRepository.updateStatusForRequests(requestIds, RequestStatus.REJECTED);
             rejectedRequests.addAll(toListOfParticipationRequestDtos(requests));
         }
@@ -179,5 +181,13 @@ public class ParticipationRequestServiceImpl implements RequestService {
                 .stream()
                 .map(participationRequestMapper::toParticipationRequestDto)
                 .toList();
+    }
+
+    private RequestStatus parseStatus(String status) {
+        try {
+            return RequestStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unknown status: " + status);
+        }
     }
 }
