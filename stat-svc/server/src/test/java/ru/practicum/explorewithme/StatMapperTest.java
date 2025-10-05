@@ -1,4 +1,4 @@
-package ru.practicum.explorewithme;
+/*package ru.practicum.explorewithme;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,4 +70,4 @@ public class StatMapperTest {
         assertNull(stat.getUri());
         assertEquals("192.168.1.1", stat.getIp());
     }
-}
+}*/

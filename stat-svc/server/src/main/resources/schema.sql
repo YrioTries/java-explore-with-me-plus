@@ -8,7 +8,3 @@ CREATE TABLE IF NOT EXISTS stats (
     created TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT pk_stats PRIMARY KEY (id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_stats_created ON stats(created);
-CREATE INDEX IF NOT EXISTS idx_stats_uri ON stats(uri);
-CREATE INDEX IF NOT EXISTS idx_stats_app ON stats(app);
