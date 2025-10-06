@@ -28,7 +28,7 @@ public class PublicReviewServiceImpl implements PublicReviewService {
             throw new NotFoundException("Ивента с id=" + eventId + " нет в БД!");
         }
         PageRequest pageRequest = PageRequest.of(from / size, size);
-        List<Review> reviews = reviewRepository.findAllById(eventId, pageRequest);
+        List<Review> reviews = reviewRepository.findAllByEventId(eventId, pageRequest);
         return reviews
                 .stream()
                 .map(reviewMapper::toReviewDto)

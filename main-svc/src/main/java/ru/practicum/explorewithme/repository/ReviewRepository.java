@@ -10,8 +10,10 @@ import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecificationExecutor<Review> {
 
-    List<Review> findAllById(Long id, Pageable pageable);
+    List<Review> findAllByEventId(Long eventId, Pageable pageable);
 
     Optional<Review> findByIdAndAuthorId(Long id, Long authorId);
+
+    List<Review> findAllByAuthorId(Long authorId);
 
 }

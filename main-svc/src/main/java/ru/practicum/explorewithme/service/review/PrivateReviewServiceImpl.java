@@ -19,6 +19,7 @@ import ru.practicum.explorewithme.repository.ReviewRepository;
 import ru.practicum.explorewithme.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +66,17 @@ public class PrivateReviewServiceImpl implements PrivateReviewService {
         Review review = reviewRepository.findByIdAndAuthorId(reviewId, userId)
                 .orElseThrow(() -> new NotFoundException("Юзер с id=" + reviewId + " не писал отзыв с id=" + reviewId + "!"));
         return reviewMapper.toReviewDto(review);
+    }
+
+    @Override
+    public List<ReviewDto> getReviewsByAuthor(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("Пользователя с id=" + userId + " нет в БД!");
+        }
+        return reviewRepository.findAllByAuthorId(userId)
+                .stream()
+                .map(reviewMapper::toReviewDto)
+                .toList();
     }
 
     private void verifyReview(User user, Event event) {
