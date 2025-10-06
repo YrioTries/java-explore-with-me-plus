@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.explorewithme.dto.review.NewReviewDto;
 import ru.practicum.explorewithme.dto.review.ReviewDto;
 import ru.practicum.explorewithme.service.review.PrivateReviewService;
 
