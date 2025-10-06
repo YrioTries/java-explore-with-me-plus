@@ -72,13 +72,4 @@ public class PrivateReviewController {
         log.info("Id инициатора ивента = {}, id ивента = {}", userId, eventId);
         return reviewService.getEventReviews(userId, eventId);
     }
-
-    @PostMapping("/{reviewId}")
-    public ReviewDto answerToReview(@Positive @PathVariable Long userId,
-                                    @Positive @PathVariable Long reviewId,
-                                    @RequestBody @Valid ReviewCommentDto dto) {
-        log.info("POST-запрос на добавление комментария к отзыву инициатором ивента");
-        log.info("Id инициатора ивента = {}, id отзыва = {}", userId, reviewId);
-        return reviewService.answerToReview(userId, reviewId, dto);
-    }
 }

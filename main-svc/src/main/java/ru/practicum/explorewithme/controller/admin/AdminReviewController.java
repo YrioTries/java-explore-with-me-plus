@@ -38,6 +38,6 @@ public class AdminReviewController {
     @DeleteMapping("/{reviewId}")
     public void deleteReview(@Positive @PathVariable Long reviewId) {
         log.info("DELETE-запрос админ-контроллера на удаление отзыва с id={}", reviewId);
-        return reviewService.deleteReview(reviewId);
+        reviewService.deleteReview(reviewId);
     }
 }
