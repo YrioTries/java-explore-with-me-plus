@@ -7,4 +7,6 @@ public interface PrivateReviewService {
 
     ReviewDto addReview(Long userId, Long eventId, NewReviewDto dto);
 
+    void deleteReviewByAuthor(Long userId, Long reviewId);
+
 }
