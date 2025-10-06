@@ -62,5 +62,6 @@ CREATE TABLE IF NOT EXISTS reviews (
     text       VARCHAR(2000) NOT NULL,
     event_id   BIGINT NOT NULL REFERENCES events(event_id),
     author_id  BIGINT NOT NULL REFERENCES users(user_id),
-    created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL
+    created_on TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    last_updated_on TIMESTAMP WITHOUT TIME ZONE
 );

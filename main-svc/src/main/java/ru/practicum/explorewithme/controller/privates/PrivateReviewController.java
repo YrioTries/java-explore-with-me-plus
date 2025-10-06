@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.explorewithme.dto.review.NewReviewDto;
 import ru.practicum.explorewithme.dto.review.ReviewDto;
+import ru.practicum.explorewithme.dto.review.UpdateReviewDto;
 import ru.practicum.explorewithme.service.review.PrivateReviewService;
 
 import java.util.List;
@@ -64,13 +65,5 @@ public class PrivateReviewController {
     public List<ReviewDto> getReviewsByAuthor(@Positive @PathVariable Long userId) {
         log.info("GET-запрос на просмотр всех отзывов автором с id={}", userId);
         return reviewService.getReviewsByAuthor(userId);
-    }
-
-    @GetMapping("/events/{eventId}")
-    public List<ReviewDto> getEventReviews(@Positive @PathVariable Long userId,
-                                           @Positive @PathVariable Long eventId) {
-        log.info("GET-запрос на просмотр всех отзывов инициатором ивента");
-        log.info("Id инициатора ивента = {}, id ивента = {}", userId, eventId);
-        return reviewService.getEventReviews(userId, eventId);
     }
 }

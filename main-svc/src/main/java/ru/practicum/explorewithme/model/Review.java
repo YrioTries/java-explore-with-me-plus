@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -44,4 +45,8 @@ public class Review {
     @Column(name = "created_on", nullable = false)
     @CreationTimestamp
     private LocalDateTime createdOn;
+
+    @UpdateTimestamp
+    @Column(name = "last_updated_on")
+    private LocalDateTime lastUpdatedOn;
 }

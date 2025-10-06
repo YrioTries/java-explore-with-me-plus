@@ -2,8 +2,10 @@ package ru.practicum.explorewithme.service.review;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.explorewithme.dto.review.NewReviewDto;
 import ru.practicum.explorewithme.dto.review.ReviewDto;
+import ru.practicum.explorewithme.dto.review.UpdateReviewDto;
 import ru.practicum.explorewithme.enums.EventState;
 import ru.practicum.explorewithme.enums.RequestStatus;
 import ru.practicum.explorewithme.exception.ConflictException;
@@ -32,6 +34,7 @@ public class PrivateReviewServiceImpl implements PrivateReviewService {
     private final ReviewMapper reviewMapper;
 
     @Override
+    @Transactional
     public ReviewDto addReview(Long userId, Long eventId, NewReviewDto dto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " нет в БД!"));
@@ -44,6 +47,26 @@ public class PrivateReviewServiceImpl implements PrivateReviewService {
         review.setCreatedOn(LocalDateTime.now());
         Review savedReview = reviewRepository.save(review);
         return reviewMapper.toReviewDto(savedReview);
+    }
+
+    @Override
+    @Transactional
+    public ReviewDto updateReview(Long userId, Long reviewId, UpdateReviewDto dto) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("Пользователя с id=" + userId + " нет в БД!");
+        }
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new NotFoundException("Отзыва с id=" + reviewId + " нет в БД!"));
+        if (!review.getAuthor().getId().equals(userId)) {
+            throw new ConflictException("Пользователь не является автором отзыва");
+        }
+        if (dto.getText() == null || dto.getText().isBlank() || dto.getText().equals(review.getText())) {
+            return reviewMapper.toReviewDto(review);
+        }
+        review.setText(dto.getText());
+        review.setLastUpdatedOn(LocalDateTime.now());
+        Review updatedReview = reviewRepository.save(review);
+        return reviewMapper.toReviewDto(updatedReview);
     }
 
     @Override
