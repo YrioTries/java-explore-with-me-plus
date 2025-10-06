@@ -57,6 +57,16 @@ public class PrivateReviewServiceImpl implements PrivateReviewService {
         reviewRepository.deleteById(reviewId);
     }
 
+    @Override
+    public ReviewDto getReviewById(Long userId, Long reviewId) {
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("Пользователя с id=" + userId + " нет в БД!");
+        }
+        Review review = reviewRepository.findByIdAndAuthorId(reviewId, userId)
+                .orElseThrow(() -> new NotFoundException("Юзер с id=" + reviewId + " не писал отзыв с id=" + reviewId + "!"));
+        return reviewMapper.toReviewDto(review);
+    }
+
     private void verifyReview(User user, Event event) {
         if (user.getId().equals(event.getInitiator().getId())) {
             throw new ConflictException("Инициатор ивента не может оставлять отзыв на свой ивент!");

@@ -9,4 +9,6 @@ public interface PrivateReviewService {
 
     void deleteReviewByAuthor(Long userId, Long reviewId);
 
+    ReviewDto getReviewById(Long userId, Long reviewId);
+
 }
