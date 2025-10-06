@@ -40,6 +40,9 @@ public class PrivateReviewServiceImpl implements PrivateReviewService {
                 .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " нет в БД!"));
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Ивента с id=" + eventId + " нет в БД!"));
+        if (reviewRepository.findByEventIdAndAuthorId(eventId, userId).isPresent()) {
+            throw new ConflictException("Юзер с id=" + userId + " уже написал отзыв к ивенту с id=" + eventId + "!");
+        }
         verifyReview(user, event);
         Review review = reviewMapper.toReview(dto);
         review.setAuthor(user);
