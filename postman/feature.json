@@ -1,0 +1,494 @@
+{
+  "info": {
+    "name": "ExploreWithMe Reviews API",
+    "_postman_id": "e1f0b3de-9b1f-4a7f-9c11-0000revview",
+    "description": "Тесты для фичи отзывов: приватные, публичные и админ эндпоинты, включая негативные сценарии и пагинацию.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": { "type": "noauth" },
+  "event": [],
+  "item": [
+    {
+      "name": "00 Env sanity",
+      "item": [
+        {
+          "name": "Check env variables",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/actuator/health"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Env: baseUrl defined', () => { pm.expect(pm.environment.get('baseUrl')).to.be.a('string'); });",
+                  "pm.test('Env: tokens present', () => { pm.expect(pm.environment.get('userToken')).to.be.ok; pm.expect(pm.environment.get('adminToken')).to.be.ok; });",
+                  "pm.test('Env: ids present', () => { pm.expect(pm.environment.get('eventIdPublished')).to.be.ok; pm.expect(pm.environment.get('userIdAuthor')).to.be.ok; });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10 Private Reviews",
+      "description": "Операции автора отзыва",
+      "item": [
+        {
+          "name": "Add review (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"text\": \"Очень классный ивент, всё по таймингу!\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 or 200', () => { pm.expect().to.include(pm.response.code); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Has id, text, authorId, eventId', () => { pm.expect(json).to.have.property('id'); pm.expect(json).to.have.property('text'); pm.expect(json).to.have.property('authorId'); pm.expect(json).to.have.property('eventId'); });",
+                  "pm.environment.set('reviewId', json.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add review duplicate (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"text\": \"Повторная попытка — должна упасть.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => { pm.expect(pm.response.code).to.equal(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update review text (200)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"text\": \"Апдейт текста: стало ещё лучше.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Has text', () => { pm.expect(json).to.have.property('text'); });",
+                  "pm.environment.set('reviewText', json.text);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get own review by id (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" }
+            ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('Ids match', () => { pm.expect(json.id).to.eql(Number(pm.environment.get('reviewId'))); pm.expect(json.authorId).to.eql(Number(pm.environment.get('userIdAuthor'))); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get all my reviews (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userIdAuthor}}/reviews",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "users", "{{userIdAuthor}}", "reviews" ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => { pm.response.to.have.status(200); });",
+                  "const arr = pm.response.json();",
+                  "pm.test('Array contains current review', () => { pm.expect(arr).to.be.an('array'); pm.expect(arr.map(r=>r.id)).to.include(Number(pm.environment.get('reviewId'))); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete own review (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" }
+            ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200', () => { pm.expect().to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get deleted review (404)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" }
+            ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404', () => { pm.expect(pm.response.code).to.equal(404); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "20 Public Reviews",
+      "description": "Публичный список отзывов события",
+      "item": [
+        {
+          "name": "List event reviews (200, paged)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/events/{{eventIdPublished}}/reviews?from={{pageFrom}}&size={{pageSize}}",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "events", "{{eventIdPublished}}", "reviews" ],
+              "query": [
+                { "key": "from", "value": "{{pageFrom}}" },
+                { "key": "size", "value": "{{pageSize}}" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => { pm.response.to.have.status(200); });",
+                  "const arr = pm.response.json();",
+                  "pm.test('Is array', () => { pm.expect(arr).to.be.an('array'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List reviews invalid paging (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/events/{{eventIdPublished}}/reviews?from=-1&size=0"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expect 400/422 validation', () => { pm.expect().to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "30 Admin Reviews",
+      "description": "Поиск и удаление отзывов админом",
+      "item": [
+        {
+          "name": "Admin search reviews by text/users/events (200)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{adminToken}}", "type": "text" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reviews?text=ивент&users={{userIdAuthor}}&events={{eventIdPublished}}&from={{pageFrom}}&size={{pageSize}}",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "admin", "reviews" ],
+              "query": [
+                { "key": "text", "value": "ивент" },
+                { "key": "users", "value": "{{userIdAuthor}}" },
+                { "key": "events", "value": "{{eventIdPublished}}" },
+                { "key": "from", "value": "{{pageFrom}}" },
+                { "key": "size", "value": "{{pageSize}}" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => { pm.response.to.have.status(200); });",
+                  "const arr = pm.response.json();",
+                  "pm.test('Array result', () => { pm.expect(arr).to.be.an('array'); });",
+                  "if (Array.isArray(arr) && arr.length > 0) { pm.environment.set('adminReviewIdToDelete', arr.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin delete review (204)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "{{adminToken}}", "type": "text" }
+            ],
+            "url": "{{baseUrl}}/admin/reviews/{{adminReviewIdToDelete}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204 or 200', () => { pm.expect().to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin search invalid paging (400)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "{{adminToken}}", "type": "text" }
+            ],
+            "url": "{{baseUrl}}/admin/reviews?from=-5&size=0"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expect 400/422 validation', () => { pm.expect().to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "40 Negative Business Rules",
+      "description": "Бизнес-валидации verifyReview",
+      "item": [
+        {
+          "name": "Add review before event ended (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"text\": \"Пробую оставить до окончания — конфликт.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Для этого теста нужен event, который ещё не закончился: используйте id активного события."
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => { pm.expect(pm.response.code).to.equal(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add review by initiator (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"text\": \"Инициатор не должен уметь оставлять отзыв.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// userIdAuthor должен совпадать с initiator.id eventIdPublished."
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => { pm.expect(pm.response.code).to.equal(409); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add review without confirmed request (409/404)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"text\": \"Без подтверждённой заявки — конфликт.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Для сценария отсутствует CONFIRMED заявка на участие."
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409 or 404', () => { pm.expect().to.include(pm.response.code); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update review by non-author (409)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/users/999999/reviews/{{reviewId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"text\": \"Не автор — конфликт.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', () => { pm.expect(pm.response.code).to.equal(409); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
