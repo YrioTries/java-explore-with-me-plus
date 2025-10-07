@@ -26,6 +26,10 @@
           "    }",
           "",
           "    async addEvent(userId, event, verbose=null) {",
+          "        // Добавляем задержку для события в будущем (минимум 2 часа)",
+          "        const futureDate = new Date();",
+          "        futureDate.setHours(futureDate.getHours() + 3); // +3 часа от текущего времени",
+          "        event.eventDate = futureDate.toISOString().replace('T', ' ').substring(0, 19);",
           "        return this.post('/users/' + userId + '/events', event, 'Ошибка при добавлении события', verbose);",
           "    }",
           "",
@@ -40,6 +44,39 @@
           "    async confirmParticipationRequest(userId, eventId, reqId, verbose=null) {",
           "        return this.patch('/users/' + userId + '/events/' + eventId + '/requests', ",
           "            {requestIds: [reqId], status: 'CONFIRMED'}, 'Ошибка при подтверждении заявки', verbose);",
+          "    }",
+          "",
+          "    async addReview(userId, eventId, review, verbose=null) {",
+          "        return this.post('/users/' + userId + '/reviews/events/' + eventId, review, 'Ошибка при добавлении отзыва', verbose);",
+          "    }",
+          "",
+          "    async updateReview(userId, reviewId, review, verbose=null) {",
+          "        return this.patch('/users/' + userId + '/reviews/' + reviewId, review, 'Ошибка при обновлении отзыва', verbose);",
+          "    }",
+          "",
+          "    async deleteReview(userId, reviewId, verbose=null) {",
+          "        return this.delete('/users/' + userId + '/reviews/' + reviewId, 'Ошибка при удалении отзыва', verbose);",
+          "    }",
+          "",
+          "    async getReview(userId, reviewId, verbose=null) {",
+          "        return this.get('/users/' + userId + '/reviews/' + reviewId, null, 'Ошибка при получении отзыва', verbose);",
+          "    }",
+          "",
+          "    async getUserReviews(userId, verbose=null) {",
+          "        return this.get('/users/' + userId + '/reviews', null, 'Ошибка при получении отзывов пользователя', verbose);",
+          "    }",
+          "",
+          "    async getEventReviews(eventId, from = 0, size = 10, verbose=null) {",
+          "        return this.get('/reviews/events/' + eventId + '?from=' + from + '&size=' + size, null, 'Ошибка при получении отзывов события', verbose);",
+          "    }",
+          "",
+          "    async adminSearchReviews(params = {}, verbose=null) {",
+          "        const query = Object.keys(params).map(key => key + '=' + params[key]).join('&');",
+          "        return this.get('/admin/reviews' + (query ? '?' + query : ''), null, 'Ошибка при поиске отзывов админом', verbose);",
+          "    }",
+          "",
+          "    async adminDeleteReview(reviewId, verbose=null) {",
+          "        return this.delete('/admin/reviews/' + reviewId, 'Ошибка при удалении отзыва админом', verbose);",
           "    }",
           "",
           "    async post(path, body, errorText = 'Ошибка при выполнении post-запроса', verbose=null) {",
@@ -64,9 +101,12 @@
           "            const request = {",
           "                url: this.baseUrl + path,",
           "                method: method,",
-          "                body: body == null ? '' : JSON.stringify(body),",
           "                header: { 'Content-Type': 'application/json' },",
           "            };",
+          "",
+          "            if (body !== null) {",
+          "                request.body = JSON.stringify(body);",
+          "            }",
           "",
           "            if(verbose) {",
           "                console.log('Отправляю запрос: ', request);",
@@ -84,7 +124,7 @@
           "                        console.log('Результат: код - ', response.code, ', тело: ', response.json());",
           "                    }",
           "",
-          "                    if (response.stream.length === 0) {",
+          "                    if (response.stream && response.stream.length === 0) {",
           "                        resolve(null);",
           "                    } else {",
           "                        resolve(response.json());",
@@ -117,15 +157,11 @@
           "    }",
           "",
           "    getEvent(categoryId) {",
-          "        // Создаем событие в будущем для корректного тестирования",
-          "        const futureDate = new Date();",
-          "        futureDate.setDate(futureDate.getDate() + 2); // событие через 2 дня",
-          "        ",
           "        return {",
-          "            annotation: 'Тестовое событие',",
+          "            annotation: 'Тестовое событие для отзывов',",
           "            category: categoryId,",
           "            description: 'Описание тестового события',",
-          "            eventDate: futureDate.toISOString().replace('T', ' ').substring(0, 19),",
+          "            eventDate: '', // будет установлено в API",
           "            location: {",
           "                lat: 55.7558,",
           "                lon: 37.6173,",
@@ -134,6 +170,19 @@
           "            participantLimit: 10,",
           "            requestModeration: false,",
           "            title: 'Тестовое событие ' + Math.floor(Math.random() * 1000),",
+          "        };",
+          "    }",
+          "",
+          "    getReview() {",
+          "        const texts = [",
+          "            'Отличное мероприятие! Организация на высшем уровне.',",
+          "            'Интересный контент, спасибо организаторам!',",
+          "            'Понравилась атмосфера и выступающие.',",
+          "            'Хорошо организовано, буду рекомендовать друзьям.',",
+          "            'Полезный опыт, узнал много нового.'",
+          "        ];",
+          "        return {",
+          "            text: texts[Math.floor(Math.random() * texts.length)]",
           "        };",
           "    }",
           "}"
@@ -154,6 +203,16 @@
     },
     {
       "key": "eventId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "reviewId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "requestId",
       "value": "",
       "type": "default"
     }
@@ -188,57 +247,151 @@
       ]
     },
     {
-      "name": "10 Basic Setup - Базовая настройка",
+      "name": "10 Private - Авторские действия",
       "item": [
         {
-          "name": "Создание тестовых данных",
+          "name": "Создание отзыва",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const main = async () => {",
+                  "    const api = new API(pm, true);",
+                  "    const rnd = new RandomUtils();",
+                  "",
+                  "    try {",
+                  "        // Создаем пользователя-организатора",
+                  "        const initiator = await api.addUser(rnd.getUser());",
+                  "        console.log('Создан организатор:', initiator.id);",
+                  "        ",
+                  "        // Создаем пользователя-участника",
+                  "        const participant = await api.addUser(rnd.getUser());",
+                  "        pm.collectionVariables.set('userId', participant.id);",
+                  "        console.log('Создан участник:', participant.id);",
+                  "        ",
+                  "        // Создаем категорию и событие",
+                  "        const category = await api.addCategory(rnd.getCategory());",
+                  "        console.log('Создана категория:', category.id);",
+                  "        ",
+                  "        const event = await api.addEvent(initiator.id, rnd.getEvent(category.id));",
+                  "        console.log('Создано событие:', event.id);",
+                  "        ",
+                  "        await api.publishEvent(event.id);",
+                  "        console.log('Событие опубликовано');",
+                  "        ",
+                  "        pm.collectionVariables.set('eventId', event.id);",
+                  "        ",
+                  "        // Создаем и подтверждаем заявку на участие",
+                  "        const request = await api.addParticipationRequest(participant.id, event.id);",
+                  "        console.log('Создана заявка:', request.id);",
+                  "        ",
+                  "        await api.confirmParticipationRequest(initiator.id, event.id, request.id);",
+                  "        console.log('Заявка подтверждена');",
+                  "        ",
+                  "        console.log('Подготовка данных завершена');",
+                  "    } catch(err) {",
+                  "        console.error('Ошибка при подготовке тестовых данных:', err);",
+                  "        throw err;",
+                  "    }",
+                  "};",
+                  "",
+                  "// Запускаем подготовку данных",
+                  "main();"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Статус 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Ответ в формате JSON', () => pm.response.to.be.json);",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test('Отзыв содержит обязательные поля', () => {",
+                  "    pm.expect(response).to.have.property('id');",
+                  "    pm.expect(response).to.have.property('text');",
+                  "    pm.expect(response).to.have.property('authorId');",
+                  "    pm.expect(response).to.have.property('eventId');",
+                  "    pm.expect(response).to.have.property('createdOn');",
+                  "});",
+                  "",
+                  "pm.test('ID автора и события корректны', () => {",
+                  "    pm.expect(response.authorId).to.equal(parseInt(pm.collectionVariables.get('userId')));",
+                  "    pm.expect(response.eventId).to.equal(parseInt(pm.collectionVariables.get('eventId')));",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('reviewId', response.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Отличное мероприятие! Организация на высшем уровне.\"\n}"
+            },
+            "url": "{{baseUrl}}/users/{{userId}}/reviews/events/{{eventId}}"
+          }
+        },
+        {
+          "name": "Получение отзыва по ID",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Пользователь создан - статус 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Статус 200', () => pm.response.to.have.status(200));",
                   "",
                   "const response = pm.response.json();",
-                  "pm.test('Пользователь содержит ID', () => {",
-                  "    pm.expect(response).to.have.property('id');",
-                  "    pm.collectionVariables.set('userId', response.id);",
+                  "pm.test('Данные корректны', () => {",
+                  "    pm.expect(response.id).to.equal(parseInt(pm.collectionVariables.get('reviewId')));",
+                  "    pm.expect(response.authorId).to.equal(parseInt(pm.collectionVariables.get('userId')));",
+                  "    pm.expect(response.eventId).to.equal(parseInt(pm.collectionVariables.get('eventId')));",
+                  "    pm.expect(response.text).to.not.be.empty;",
                   "});"
                 ]
               }
             }
           ],
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\"\n}"
-            },
-            "url": "{{baseUrl}}/admin/users"
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/users/{{userId}}/reviews/{{reviewId}}"
           }
         },
         {
-          "name": "Создание категории",
+          "name": "Обновление текста отзыва",
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Категория создана - статус 201', () => pm.response.to.have.status(201));"
+                  "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+                  "",
+                  "const response = pm.response.json();",
+                  "pm.test('Текст обновлен', () => {",
+                  "    pm.expect(response.text).to.equal('Обновленный текст отзыва: еще лучше!');",
+                  "    pm.expect(response).to.have.property('lastUpdatedOn');",
+                  "});"
                 ]
               }
             }
           ],
           "request": {
-            "method": "POST",
+            "method": "PATCH",
             "header": [
               {
                 "key": "Content-Type",
@@ -247,9 +400,90 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"TestCategory\"\n}"
+              "raw": "{\n  \"text\": \"Обновленный текст отзыва: еще лучше!\"\n}"
             },
-            "url": "{{baseUrl}}/admin/categories"
+            "url": "{{baseUrl}}/users/{{userId}}/reviews/{{reviewId}}"
+          }
+        },
+        {
+          "name": "Получение всех отзывов пользователя",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Массив отзывов', () => {",
+                  "    const reviews = pm.response.json();",
+                  "    pm.expect(reviews).to.be.an('array');",
+                  "    if (reviews.length > 0) {",
+                  "        pm.expect(reviews[0]).to.have.property('id');",
+                  "        pm.expect(reviews[0]).to.have.property('text');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/users/{{userId}}/reviews"
+          }
+        },
+        {
+          "name": "Удаление отзыва автором",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Статус 204', () => pm.response.to.have.status(204));",
+                  "pm.test('Нет тела ответа', () => pm.response.to.have.body(''));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/users/{{userId}}/reviews/{{reviewId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 Public - Публичные эндпоинты",
+      "item": [
+        {
+          "name": "Получение отзывов события с пагинацией",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Статус 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Массив отзывов', () => {",
+                  "    const reviews = pm.response.json();",
+                  "    pm.expect(reviews).to.be.an('array');",
+                  "    if (reviews.length > 0) {",
+                  "        pm.expect(reviews[0]).to.have.property('id');",
+                  "        pm.expect(reviews[0]).to.have.property('text');",
+                  "        pm.expect(reviews[0]).to.have.property('authorId');",
+                  "        pm.expect(reviews[0]).to.have.property('eventId');",
+                  "    }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/reviews/events/{{eventId}}?from=0&size=10"
           }
         }
       ]
@@ -277,7 +511,27 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{baseUrl}}/admin/reviews?from=0&size=10"
+            "url": "{{baseUrl}}/admin/reviews?text=ивент&users={{userId}}&events={{eventId}}&from=0&size=10"
+          }
+        },
+        {
+          "name": "Удаление отзыва администратором",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Статус 204', () => pm.response.to.have.status(204));",
+                  "pm.test('Нет тела ответа', () => pm.response.to.have.body(''));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/admin/reviews/{{reviewId}}"
           }
         }
       ]
