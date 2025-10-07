@@ -1,9 +1,9 @@
 {
+  "openapi": "3.0.1",
   "info": {
-    "name": "ExploreWithMe Reviews API",
-    "_postman_id": "e1f0b3de-9b1f-4a7f-9c11-0000revview",
+    "title": "ExploreWithMe Reviews API",
     "description": "Тесты для отзывов: приватные, публичные, админ, негативные сценарии и пагинация.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "version": "v0"
   },
   "auth": { "type": "noauth" },
   "item": [
