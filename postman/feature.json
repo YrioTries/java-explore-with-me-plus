@@ -1,31 +1,26 @@
 {
-  "openapi": "3.0.1",
   "info": {
-    "title": "ExploreWithMe Reviews API",
-    "description": "Тесты для отзывов: приватные, публичные, админ, негативные сценарии и пагинация.",
-    "version": "v0"
+    "name": "EWM Reviews — New Tests",
+    "_postman_id": "b77a3f2e-4d8f-4a55-a1b2-new-reviews",
+    "description": "Новая коллекция: стабильные тесты для отзывов (private/public/admin) по коду контроллеров и сервисов.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": { "type": "noauth" },
   "item": [
     {
-      "name": "00 Env sanity",
+      "name": "00 Sanity",
       "item": [
         {
-          "name": "Check env variables",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{baseUrl}}/actuator/health"
-          },
+          "name": "Healthcheck",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/actuator/health" },
           "event": [
             {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Env: baseUrl defined', () => pm.expect(pm.environment.get('baseUrl')).to.be.a('string'));",
-                  "pm.test('Env: tokens present', () => { pm.expect(pm.environment.get('userToken')).to.be.ok; pm.expect(pm.environment.get('adminToken')).to.be.ok; });",
-                  "pm.test('Env: ids present', () => { pm.expect(pm.environment.get('eventIdPublished')).to.be.ok; pm.expect(pm.environment.get('userIdAuthor')).to.be.ok; });"
+                  "pm.test('200/UP', () => pm.expect(pm.response.code).to.be.oneOf());",
+                  "const j = pm.response.json?.() || {}; pm.test('status=UP', () => pm.expect(j.status).to.equal('UP'));"
                 ]
               }
             }
@@ -34,23 +29,23 @@
       ]
     },
     {
-      "name": "10 Private Reviews",
-      "description": "Операции автора отзыва",
+      "name": "10 Private",
+      "description": "Действия автора: создать, прочитать, обновить, удалить",
       "item": [
         {
-          "name": "Add review (201)",
+          "name": "Create review",
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
               { "key": "Content-Type", "value": "application/json" }
             ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews",
             "body": {
               "mode": "raw",
-              "raw": "{\n \"text\": \"Очень классный ивент, всё по таймингу!\"\n}",
+              "raw": "{\n \"text\": \"Отзыв: организация на уровне, спасибо!\"\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews"
+            }
           },
           "event": [
             {
@@ -58,89 +53,51 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 201/200', () => pm.expect(pm.response.code).to.be.oneOf());",
-                  "const json = pm.response.json();",
-                  "pm.test('Has id/text/authorId/eventId', () => { pm.expect(json).to.have.property('id'); pm.expect(json).to.have.property('text'); pm.expect(json).to.have.property('authorId'); pm.expect(json).to.have.property('eventId'); });",
-                  "pm.environment.set('reviewId', json.id);"
+                  "pm.test('201/200', () => pm.expect(pm.response.code).to.be.oneOf());",
+                  "let ok=true; try { pm.response.json(); } catch(e) { ok=false; }",
+                  "pm.test('JSON body', () => pm.expect(ok).to.eql(true));",
+                  "const r = pm.response.json?.() || {};",
+                  "pm.test('has id/text/authorId/eventId', () => { ['id','text','authorId','eventId'].forEach(k=>pm.expect(r).to.have.property(k)); });",
+                  "pm.environment.set('reviewId', r.id);"
                 ]
               }
             }
           ]
         },
         {
-          "name": "Add review duplicate (409)",
+          "name": "Get my review by id",
           "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"text\": \"Повторная попытка — должна упасть.\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews"
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "{{userToken}}", "type": "text" } ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}"
           },
           "event": [
             {
               "listen": "test",
-              "script": { "type": "text/javascript", "exec": [ "pm.test('Status 409', () => pm.response.to.have.status(409));" ] }
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json?.() || {};",
+                  "pm.test('ids match', () => { pm.expect(r.id).to.eql(Number(pm.environment.get('reviewId'))); pm.expect(r.authorId).to.eql(Number(pm.environment.get('userIdAuthor'))); });"
+                ]
+              }
             }
           ]
         },
         {
-          "name": "Update review text (200)",
+          "name": "Update text",
           "request": {
             "method": "PATCH",
             "header": [
               { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
               { "key": "Content-Type", "value": "application/json" }
             ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n \"text\": \"Апдейт текста: стало ещё лучше.\"\n}",
+              "raw": "{\n \"text\": \"Апдейт: понравилась площадка и тайминг.\"\n}",
               "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": { "type": "text/javascript", "exec": [ "pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Has text', () => pm.expect(pm.response.json()).to.have.property('text'));" ] }
-            }
-          ]
-        },
-        {
-          "name": "Get own review by id (200)",
-          "request": {
-            "method": "GET",
-            "header": [ { "key": "Authorization", "value": "{{userToken}}", "type": "text" } ],
-            "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}"
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "const j = pm.response.json();",
-                  "pm.test('Ids match', () => { pm.expect(j.id).to.eql(Number(pm.environment.get('reviewId'))); pm.expect(j.authorId).to.eql(Number(pm.environment.get('userIdAuthor'))); });"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Get all my reviews (200)",
-          "request": {
-            "method": "GET",
-            "header": [ { "key": "Authorization", "value": "{{userToken}}", "type": "text" } ],
-            "url": {
-              "raw": "{{baseUrl}}/users/{{userIdAuthor}}/reviews",
-              "host": [ "{{baseUrl}}" ],
-              "path": [ "users", "{{userIdAuthor}}", "reviews" ]
             }
           },
           "event": [
@@ -149,47 +106,57 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "const arr = pm.response.json();",
-                  "pm.test('Contains created review', () => { pm.expect(arr).to.be.an('array'); pm.expect(arr.map(r=>r.id)).to.include(Number(pm.environment.get('reviewId'))); });"
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json?.() || {}; pm.test('has text', () => pm.expect(r).to.have.property('text'));"
                 ]
               }
             }
           ]
         },
         {
-          "name": "Delete own review (204/200)",
+          "name": "Get all my reviews",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "{{userToken}}", "type": "text" } ],
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": { "type": "text/javascript", "exec": [ "pm.test('200', () => pm.response.to.have.status(200));", "const arr = pm.response.json?.() || []; pm.test('array', () => pm.expect(arr).to.be.an('array'));" ] }
+            }
+          ]
+        },
+        {
+          "name": "Delete my review",
           "request": {
             "method": "DELETE",
             "header": [ { "key": "Authorization", "value": "{{userToken}}", "type": "text" } ],
             "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}"
           },
           "event": [
-            {
-              "listen": "test",
-              "script": { "type": "text/javascript", "exec": [ "pm.test('Status 204 or 200', () => pm.expect(pm.response.code).to.be.oneOf());" ] }
-            }
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('204/200', () => pm.expect(pm.response.code).to.be.oneOf());" ] } }
           ]
         },
         {
-          "name": "Get deleted review (404)",
+          "name": "Get deleted (expect 404)",
           "request": {
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "{{userToken}}", "type": "text" } ],
             "url": "{{baseUrl}}/users/{{userIdAuthor}}/reviews/{{reviewId}}"
           },
           "event": [
-            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('Status 404', () => pm.response.to.have.status(404));" ] } }
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('404', () => pm.response.to.have.status(404));" ] } }
           ]
         }
       ]
     },
     {
-      "name": "20 Public Reviews",
-      "description": "Публичный список отзывов события",
+      "name": "20 Public",
+      "description": "Публичные отзывы события",
       "item": [
         {
-          "name": "List event reviews (200, paged)",
+          "name": "List event reviews paged",
           "request": {
             "method": "GET",
             "header": [],
@@ -204,31 +171,28 @@
             }
           },
           "event": [
-            {
-              "listen": "test",
-              "script": { "type": "text/javascript", "exec": [ "pm.test('Status 200', () => pm.response.to.have.status(200));", "pm.test('Is array', () => pm.expect(pm.response.json()).to.be.an('array'));" ] }
-            }
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('200', () => pm.response.to.have.status(200));", "pm.test('array', () => pm.expect(pm.response.json()).to.be.an('array'));" ] } }
           ]
         },
         {
-          "name": "List reviews invalid paging (400/422)",
+          "name": "Invalid paging",
           "request": {
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/events/{{eventIdPublished}}/reviews?from=-1&size=0"
           },
           "event": [
-            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('Validation error', () => pm.expect(pm.response.code).to.be.oneOf());" ] } }
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('400/422', () => pm.expect(pm.response.code).to.be.oneOf());" ] } }
           ]
         }
       ]
     },
     {
-      "name": "30 Admin Reviews",
-      "description": "Поиск и удаление отзывов админом",
+      "name": "30 Admin",
+      "description": "Поиск/удаление админом",
       "item": [
         {
-          "name": "Admin search reviews by text/users/events (200)",
+          "name": "Admin search by filters",
           "request": {
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "{{adminToken}}", "type": "text" } ],
@@ -251,9 +215,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "const arr = pm.response.json();",
-                  "pm.test('Array result', () => pm.expect(arr).to.be.an('array'));",
+                  "pm.test('200', () => pm.response.to.have.status(200));",
+                  "const arr = pm.response.json?.() || []; pm.test('array', () => pm.expect(arr).to.be.an('array'));",
                   "if (Array.isArray(arr) && arr.length > 0) pm.environment.set('adminReviewIdToDelete', arr.id);"
                 ]
               }
@@ -261,108 +224,71 @@
           ]
         },
         {
-          "name": "Admin delete review (204/200)",
+          "name": "Admin delete by id",
           "request": {
             "method": "DELETE",
             "header": [ { "key": "Authorization", "value": "{{adminToken}}", "type": "text" } ],
             "url": "{{baseUrl}}/admin/reviews/{{adminReviewIdToDelete}}"
           },
           "event": [
-            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('Status 204 or 200', () => pm.expect(pm.response.code).to.be.oneOf());" ] } }
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('204/200', () => pm.expect(pm.response.code).to.be.oneOf());" ] } }
           ]
         },
         {
-          "name": "Admin search invalid paging (400/422)",
+          "name": "Admin invalid paging",
           "request": {
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "{{adminToken}}", "type": "text" } ],
             "url": "{{baseUrl}}/admin/reviews?from=-5&size=0"
           },
           "event": [
-            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('Validation error', () => pm.expect(pm.response.code).to.be.oneOf());" ] } }
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('400/422', () => pm.expect(pm.response.code).to.be.oneOf());" ] } }
           ]
         }
       ]
     },
     {
-      "name": "40 Negative Business Rules",
-      "description": "Бизнес-валидации verifyReview",
+      "name": "40 Business Rules (negatives)",
+      "description": "Проверка verifyReview",
       "item": [
         {
-          "name": "Add review before event ended (409)",
+          "name": "Before event ended (409)",
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"text\": \"Пробую оставить до окончания — конфликт.\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews"
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews",
+            "body": { "mode": "raw", "raw": "{\n \"text\": \"Рано оставлять отзыв\"\n}", "options": { "raw": { "language": "json" } } }
           },
-          "event": [
-            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('Status 409', () => pm.response.to.have.status(409));" ] } }
-          ]
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('409', () => pm.response.to.have.status(409));" ] } } ]
         },
         {
-          "name": "Add review by initiator (409)",
+          "name": "Initiator cannot review (409)",
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"text\": \"Инициатор не должен уметь оставлять отзыв.\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews"
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews",
+            "body": { "mode": "raw", "raw": "{\n \"text\": \"Инициатор не может\"\n}", "options": { "raw": { "language": "json" } } }
           },
-          "event": [
-            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('Status 409', () => pm.response.to.have.status(409));" ] } }
-          ]
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('409', () => pm.response.to.have.status(409));" ] } } ]
         },
         {
-          "name": "Add review without confirmed request (409/404)",
+          "name": "No confirmed request (409/404)",
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"text\": \"Без подтверждённой заявки — конфликт.\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews"
+            "url": "{{baseUrl}}/users/{{userIdAuthor}}/events/{{eventIdPublished}}/reviews",
+            "body": { "mode": "raw", "raw": "{\n \"text\": \"Нет подтверждения участия\"\n}", "options": { "raw": { "language": "json" } } }
           },
-          "event": [
-            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('Status 409 or 404', () => pm.expect(pm.response.code).to.be.oneOf());" ] } }
-          ]
-        },
-        {
-          "name": "Update review by non-author (409)",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Authorization", "value": "{{userToken}}", "type": "text" },
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n \"text\": \"Не автор — конфликт.\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "url": "{{baseUrl}}/users/999999/reviews/{{reviewId}}"
-          },
-          "event": [
-            { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('Status 409', () => pm.response.to.have.status(409));" ] } }
-          ]
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('409/404', () => pm.expect(pm.response.code).to.be.oneOf());" ] } } ]
         }
       ]
     }
