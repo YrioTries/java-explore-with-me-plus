@@ -15,6 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PublicReviewServiceImpl implements PublicReviewService {
     private final ReviewRepository reviewRepository;
     private final EventRepository eventRepository;
@@ -22,7 +23,6 @@ public class PublicReviewServiceImpl implements PublicReviewService {
     private final ReviewMapper reviewMapper;
 
     @Override
-    @Transactional(readOnly = true)
     public List<ReviewDto> getEventReviewsByPublic(Long eventId, Integer from, Integer size) {
         if (!eventRepository.existsById(eventId)) {
             throw new NotFoundException("Ивента с id=" + eventId + " нет в БД!");

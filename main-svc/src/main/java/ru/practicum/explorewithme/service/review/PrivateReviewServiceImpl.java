@@ -25,6 +25,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PrivateReviewServiceImpl implements PrivateReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;

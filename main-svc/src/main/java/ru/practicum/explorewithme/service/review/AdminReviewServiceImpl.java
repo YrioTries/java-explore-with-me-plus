@@ -16,6 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AdminReviewServiceImpl implements AdminReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;

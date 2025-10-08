@@ -26,13 +26,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PrivateEventServiceImpl implements PrivateEventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
 
-    @Transactional(readOnly = true)
+
     @Override
     public List<EventShortDto> getEventsByUser(Long userId, Pageable pageable) {
         if (!userRepository.existsById(userId)) {
@@ -44,8 +45,9 @@ public class PrivateEventServiceImpl implements PrivateEventService {
                 .getContent();
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public EventFullDto createEvent(Long userId, NewEventDto newEventDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
@@ -75,7 +77,6 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         return eventFullDto;
     }
 
-    @Transactional(readOnly = true)
     @Override
     public EventFullDto getEventByUser(Long userId, Long eventId) {
         if (!userRepository.existsById(userId)) {
@@ -87,8 +88,9 @@ public class PrivateEventServiceImpl implements PrivateEventService {
         return eventMapper.toEventFullDto(event);
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventUserRequest updateRequest) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("User not found");
