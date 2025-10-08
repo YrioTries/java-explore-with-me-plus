@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class StatServiceImpl implements StatService {
 
     private final StatRepository statRepository;
