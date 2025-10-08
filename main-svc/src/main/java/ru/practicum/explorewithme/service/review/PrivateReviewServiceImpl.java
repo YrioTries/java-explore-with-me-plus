@@ -73,6 +73,7 @@ public class PrivateReviewServiceImpl implements PrivateReviewService {
     }
 
     @Override
+    @Transactional
     public void deleteReviewByAuthor(Long userId, Long reviewId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователя с id=" + userId + " нет в БД!"));
