@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
@@ -42,7 +43,6 @@ public class EventServiceImpl implements EventService {
 
     private final StatsClient statsClient;
 
-    @Transactional(readOnly = true)
     @Override
     public List<EventFullDto> getEventsForAdmin(List<Long> users, List<String> states,
                                                 List<Long> categories, LocalDateTime rangeStart,
@@ -79,8 +79,9 @@ public class EventServiceImpl implements EventService {
 
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateRequest) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event not found"));

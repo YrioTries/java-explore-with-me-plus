@@ -17,13 +17,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final EventRepository eventRepository;
     private final CategoryMapper categoryMapper;
 
-    @Transactional
     @Override
+    @Transactional
     public CategoryDto createCategory(NewCategoryDto newCategoryDto) {
         if (categoryRepository.existsByName(newCategoryDto.getName())) {
             throw new ConflictException("Category name must be unique");
@@ -34,8 +35,8 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toCategoryDto(savedCategory);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void deleteCategory(Long catId) {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category not found"));
@@ -47,8 +48,8 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.delete(category);
     }
 
-    @Transactional
     @Override
+    @Transactional
     public CategoryDto updateCategory(Long catId, CategoryDto categoryDto) {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category not found"));
@@ -63,7 +64,6 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toCategoryDto(updatedCategory);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<CategoryDto> getCategories(Pageable pageable) {
         return categoryRepository.findAll(pageable)
@@ -71,7 +71,6 @@ public class CategoryServiceImpl implements CategoryService {
                 .getContent();
     }
 
-    @Transactional(readOnly = true)
     @Override
     public CategoryDto getCategoryById(Long catId) {
         Category category = categoryRepository.findById(catId)

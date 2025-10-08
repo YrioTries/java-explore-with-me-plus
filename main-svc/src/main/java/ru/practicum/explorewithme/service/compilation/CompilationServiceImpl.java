@@ -20,13 +20,15 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
     private final CompilationMapper compilationMapper;
 
-    @Transactional
+
     @Override
+    @Transactional
     public CompilationDto createCompilation(NewCompilationDto newCompilationDto) {
         Compilation compilation = compilationMapper.toCompilation(newCompilationDto);
 
@@ -42,8 +44,9 @@ public class CompilationServiceImpl implements CompilationService {
         return compilationMapper.toCompilationDto(savedCompilation);
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public void deleteCompilation(Long compId) {
         if (!compilationRepository.existsById(compId)) {
             throw new NotFoundException("Compilation not found");
@@ -51,8 +54,9 @@ public class CompilationServiceImpl implements CompilationService {
         compilationRepository.deleteById(compId);
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest updateRequest) {
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new NotFoundException("Compilation not found"));
@@ -72,7 +76,7 @@ public class CompilationServiceImpl implements CompilationService {
         return compilationMapper.toCompilationDto(updatedCompilation);
     }
 
-    @Transactional(readOnly = true)
+
     @Override
     public List<CompilationDto> getCompilations(Boolean pinned, Pageable pageable) {
         if (pinned != null) {
@@ -86,7 +90,6 @@ public class CompilationServiceImpl implements CompilationService {
         }
     }
 
-    @Transactional(readOnly = true)
     @Override
     public CompilationDto getCompilationById(Long compId) {
         Compilation compilation = compilationRepository.findById(compId)

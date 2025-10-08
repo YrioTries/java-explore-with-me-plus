@@ -27,13 +27,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ParticipationRequestServiceImpl implements RequestService {
     private final ParticipationRequestRepository participationRequestRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final ParticipationRequestMapper participationRequestMapper;
 
-    @Transactional(readOnly = true)
     @Override
     public List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
         Event event = eventRepository.findById(eventId)
@@ -48,8 +48,9 @@ public class ParticipationRequestServiceImpl implements RequestService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId,
                                                               EventRequestStatusUpdateRequest updateRequest) {
         Event event = eventRepository.findById(eventId)
@@ -196,7 +197,7 @@ public class ParticipationRequestServiceImpl implements RequestService {
         }
     }
 
-    @Transactional(readOnly = true)
+
     @Override
     public List<ParticipationRequestDto> getUserRequests(Long userId) {
         if (!userRepository.existsById(userId)) {
@@ -208,8 +209,9 @@ public class ParticipationRequestServiceImpl implements RequestService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public ParticipationRequestDto createRequest(Long userId, Long eventId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + userId + " not found"));
@@ -252,8 +254,9 @@ public class ParticipationRequestServiceImpl implements RequestService {
         return participationRequestMapper.toParticipationRequestDto(savedRequest);
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + userId + " not found"));

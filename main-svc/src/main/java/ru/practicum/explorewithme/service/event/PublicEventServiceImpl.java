@@ -27,13 +27,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PublicEventServiceImpl implements PublicEventService {
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
 
     private final StatsClient statsClient;
 
-    @Transactional(readOnly = true)
     @Override
     public List<EventShortDto> getEventsPublic(String text, List<Long> categories, Boolean paid,
                                                LocalDateTime rangeStart, LocalDateTime rangeEnd,
@@ -63,8 +63,9 @@ public class PublicEventServiceImpl implements PublicEventService {
                 .toList();
     }
 
-    @Transactional
+
     @Override
+    @Transactional
     public EventFullDto getEventById(Long id, HttpServletRequest request) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Event not found"));
