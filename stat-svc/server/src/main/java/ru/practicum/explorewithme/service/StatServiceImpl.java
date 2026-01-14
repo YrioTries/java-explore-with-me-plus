@@ -1,11 +1,14 @@
-package ru.practicum.explorewithme;
+package ru.practicum.explorewithme.service;
 
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.EndpointHitDto;
 import ru.practicum.StatResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.explorewithme.exceptions.ValidationException;
+import ru.practicum.explorewithme.error_processing.exceptions.ValidationException;
+import ru.practicum.explorewithme.model.entity.Stat;
+import ru.practicum.explorewithme.model.mapper.StatMapper;
+import ru.practicum.explorewithme.model.repository.StatRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;

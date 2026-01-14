@@ -1,4 +1,4 @@
-package ru.practicum.explorewithme;
+package ru.practicum.explorewithme.controller;
 
 import ru.practicum.EndpointHitDto;
 import ru.practicum.StatResponseDto;
@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import ru.practicum.explorewithme.service.StatService;
+
 import java.time.LocalDateTime;
 import java.util.List;
 

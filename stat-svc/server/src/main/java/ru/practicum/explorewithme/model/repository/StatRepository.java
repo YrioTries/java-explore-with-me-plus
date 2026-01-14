@@ -1,9 +1,10 @@
-package ru.practicum.explorewithme;
+package ru.practicum.explorewithme.model.repository;
 
 import ru.practicum.StatResponseDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import ru.practicum.explorewithme.model.entity.Stat;
 
 import java.time.LocalDateTime;
 import java.util.List;

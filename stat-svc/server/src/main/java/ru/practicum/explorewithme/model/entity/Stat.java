@@ -1,4 +1,4 @@
-package ru.practicum.explorewithme;
+package ru.practicum.explorewithme.model.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

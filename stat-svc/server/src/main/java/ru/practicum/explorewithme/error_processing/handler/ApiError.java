@@ -1,4 +1,4 @@
-package ru.practicum.explorewithme.exceptions;
+package ru.practicum.explorewithme.error_processing.handler;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

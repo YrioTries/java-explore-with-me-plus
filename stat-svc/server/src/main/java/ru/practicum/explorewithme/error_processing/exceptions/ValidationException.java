@@ -1,4 +1,4 @@
-package ru.practicum.explorewithme.exceptions;
+package ru.practicum.explorewithme.error_processing.exceptions;
 
 public class ValidationException extends RuntimeException {
     public ValidationException(String message) {

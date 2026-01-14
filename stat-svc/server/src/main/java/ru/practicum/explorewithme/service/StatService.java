@@ -1,4 +1,4 @@
-package ru.practicum.explorewithme;
+package ru.practicum.explorewithme.service;
 
 import ru.practicum.EndpointHitDto;
 import ru.practicum.StatResponseDto;
