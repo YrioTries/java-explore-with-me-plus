@@ -16,6 +16,10 @@
 	<modules>
 		<module>stat-svc</module>
 		<module>main-svc</module>
+		<module>infra</module>
+		<module>infra/config-server</module>
+		<module>infra/discovery-server</module>
+		<module>infra/gateway-server</module>
 	</modules>
 
 	<groupId>ru.practicum</groupId>
