@@ -1,4 +1,4 @@
-package ru.practicum.explorewithme.service.review;
+package ru.practicum.explorewithme.service.review.admin_rights;
 
 import ru.practicum.explorewithme.dto.review.ReviewDto;
 

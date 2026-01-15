@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.explorewithme.dto.review.NewReviewDto;
 import ru.practicum.explorewithme.dto.review.ReviewDto;
 import ru.practicum.explorewithme.dto.review.UpdateReviewDto;
-import ru.practicum.explorewithme.service.review.PrivateReviewService;
+import ru.practicum.explorewithme.service.review.private_rights.PrivateReviewService;
 
 import java.util.List;
 

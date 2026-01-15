@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.explorewithme.dto.review.ReviewDto;
-import ru.practicum.explorewithme.service.review.AdminReviewService;
+import ru.practicum.explorewithme.service.review.admin_rights.AdminReviewService;
 
 import java.util.List;
 

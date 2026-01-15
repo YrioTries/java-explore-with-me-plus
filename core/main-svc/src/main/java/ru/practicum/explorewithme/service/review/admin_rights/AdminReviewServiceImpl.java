@@ -1,4 +1,4 @@
-package ru.practicum.explorewithme.service.review;
+package ru.practicum.explorewithme.service.review.admin_rights;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

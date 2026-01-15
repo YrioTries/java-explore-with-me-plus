@@ -7,12 +7,12 @@ import ru.practicum.explorewithme.enums.EventState;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "events")
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "events")
 public class Event {
 
     @Id
