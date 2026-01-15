@@ -8,8 +8,8 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>client</artifactId>
-    <name>client</name>
+    <artifactId>stats-client</artifactId>
+    <name>stats-client</name>
 
 
     <dependencies>
@@ -20,7 +20,7 @@
 
         <dependency>
             <groupId>ru.practicum</groupId>
-            <artifactId>dto</artifactId>
+            <artifactId>stats-dto</artifactId>
             <version>${project.version}</version>
         </dependency>
 

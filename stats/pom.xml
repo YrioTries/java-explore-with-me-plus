@@ -14,16 +14,16 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>server</module>
-        <module>client</module>
-        <module>dto</module>
+        <module>stats-server</module>
+        <module>stats-client</module>
+        <module>stats-dto</module>
     </modules>
 
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version> <!-- Используем версию из properties -->
+            <version>${lombok.version}</version>
             <optional>true</optional>
         </dependency>
 

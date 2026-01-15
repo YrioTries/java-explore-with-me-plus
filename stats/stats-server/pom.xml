@@ -8,8 +8,8 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>server</artifactId>
-    <name>server</name>
+    <artifactId>stats-server</artifactId>
+    <name>stats-server</name>
 
     <dependencies>
         <dependency>
@@ -39,13 +39,13 @@
 
         <dependency>
             <groupId>ru.practicum</groupId>
-            <artifactId>dto</artifactId>
+            <artifactId>stats-dto</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>ru.practicum</groupId>
-            <artifactId>client</artifactId>
+            <artifactId>stats-client</artifactId>
             <version>${project.version}</version>
         </dependency>
 

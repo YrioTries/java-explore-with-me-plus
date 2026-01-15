@@ -1,15 +1,15 @@
 server:
-  port: 8080
+  port: 9090
 
 spring:
   datasource:
-    url: jdbc:postgresql://main-svc-db:5432/main
+    url: jdbc:postgresql://stats-db:5432/explorewithme
     username: dbuser
     password: 12345
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
       dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
