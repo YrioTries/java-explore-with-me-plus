@@ -11,15 +11,12 @@
 		<relativePath/>
 	</parent>
 
-	<name>Explore With Me</name>
+	<name>explore-with-me</name>
 
 	<modules>
-		<module>stat-svc</module>
-		<module>main-svc</module>
+		<module>stats</module>
 		<module>infra</module>
-		<module>infra/config-server</module>
-		<module>infra/discovery-server</module>
-		<module>infra/gateway-server</module>
+		<module>core</module>
 	</modules>
 
 	<groupId>ru.practicum</groupId>
@@ -36,15 +33,30 @@
 		<h2.version>2.2.224</h2.version>
 		<hamcrest.version>2.2</hamcrest.version>
 		<lombok.version>1.18.32</lombok.version>
-		<mapstruct.version>1.5.5.Final</mapstruct.version>
 		<jakarta.validation.version>3.0.2</jakarta.validation.version>
 
+		<avro.version>1.11.3</avro.version>
+		<kafka-clients.version>3.6.1</kafka-clients.version>
+		<springdoc-openapi-starter.version>2.6.0</springdoc-openapi-starter.version>
+		<grpc-spring-boot-starter.version>3.1.0.RELEASE</grpc-spring-boot-starter.version>
+		<protobuf.version>3.23.4</protobuf.version>
+		<grpc.version>1.63.0</grpc.version>
+		<spring-cloud-dependencies.version>2023.0.3</spring-cloud-dependencies.version>
+		<spring-cloud-starter-circuitbreaker-resilience4j.version>3.1.2</spring-cloud-starter-circuitbreaker-resilience4j.version>
+		<mapstruct.version>1.5.5.Final</mapstruct.version>
+		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+		<postgresql.version>42.7.3</postgresql.version>
+
+		<!--       Plugins       -->
 		<maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
 		<maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
-		<maven.checkstyle.plugin.version>3.1.2</maven.checkstyle.plugin.version>
-		<checkstyle.version>10.3</checkstyle.version>
 		<spotbugs.maven.plugin.version>4.8.5.0</spotbugs.maven.plugin.version>
 		<jacoco.maven.plugin.version>0.8.12</jacoco.maven.plugin.version>
+
+		<maven.checkstyle.plugin.version>3.1.2</maven.checkstyle.plugin.version>
+		<checkstyle.version>10.3</checkstyle.version>
+		<avro-maven-plugin.version>${avro.version}</avro-maven-plugin.version>
+		<protobuf-plugin.version>2.4.0</protobuf-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -54,65 +66,158 @@
 				<artifactId>spring-boot-starter-actuator</artifactId>
 				<version>${spring.boot.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter-web</artifactId>
 				<version>${spring.boot.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter-data-jpa</artifactId>
 				<version>${spring.boot.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter-validation</artifactId>
 				<version>${spring.boot.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.postgresql</groupId>
 				<artifactId>postgresql</artifactId>
 				<version>${postgresql.version}</version>
 				<scope>runtime</scope>
 			</dependency>
+
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-starter-test</artifactId>
 				<version>${spring.boot.version}</version>
 				<scope>test</scope>
 			</dependency>
+
 			<dependency>
 				<groupId>jakarta.validation</groupId>
 				<artifactId>jakarta.validation-api</artifactId>
 				<version>${jakarta.validation.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.hamcrest</groupId>
 				<artifactId>hamcrest</artifactId>
 				<version>${hamcrest.version}</version>
 				<scope>test</scope>
 			</dependency>
+
 			<dependency>
 				<groupId>org.projectlombok</groupId>
 				<artifactId>lombok</artifactId>
 				<version>${lombok.version}</version>
 				<optional>true</optional>
 			</dependency>
+
 			<dependency>
 				<groupId>com.h2database</groupId>
 				<artifactId>h2</artifactId>
 				<version>${h2.version}</version>
 				<scope>test</scope>
 			</dependency>
+
 			<dependency>
 				<groupId>org.mapstruct</groupId>
 				<artifactId>mapstruct</artifactId>
 				<version>${mapstruct.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.mapstruct</groupId>
 				<artifactId>mapstruct-processor</artifactId>
 				<version>${mapstruct.version}</version>
+			</dependency>
+
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+				<version>${spring-cloud-starter-circuitbreaker-resilience4j.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.avro</groupId>
+				<artifactId>avro</artifactId>
+				<version>${avro.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>net.devh</groupId>
+				<artifactId>grpc-spring-boot-starter</artifactId>
+				<version>${grpc-spring-boot-starter.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.kafka</groupId>
+				<artifactId>kafka-clients</artifactId>
+				<version>${kafka-clients.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springdoc</groupId>
+				<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+				<version>${springdoc-openapi-starter.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>net.devh</groupId>
+				<artifactId>grpc-server-spring-boot-starter</artifactId>
+				<version>${grpc-spring-boot-starter.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.grpc</groupId>
+				<artifactId>grpc-stub</artifactId>
+				<version>${grpc.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>io.grpc</groupId>
+				<artifactId>grpc-protobuf</artifactId>
+				<version>${grpc.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud-dependencies.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.mapstruct</groupId>
+				<artifactId>mapstruct</artifactId>
+				<version>${mapstruct.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok-mapstruct-binding</artifactId>
+				<version>${lombok-mapstruct-binding.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.postgresql</groupId>
+				<artifactId>postgresql</artifactId>
+				<version>${postgresql.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok</artifactId>
+				<version>${lombok.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -122,38 +227,46 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -168,6 +281,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -190,6 +304,7 @@
 						</systemPropertyVariables>
 					</configuration>
 				</plugin>
+
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
@@ -216,6 +331,7 @@
 						</dependency>
 					</dependencies>
 				</plugin>
+
 				<plugin>
 					<groupId>com.github.spotbugs</groupId>
 					<artifactId>spotbugs-maven-plugin</artifactId>
@@ -232,6 +348,7 @@
 						</execution>
 					</executions>
 				</plugin>
+
 				<plugin>
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
@@ -303,6 +420,7 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+
 	<profiles>
 		<profile>
 			<id>check</id>
@@ -318,6 +436,7 @@
 					</plugin>
 				</plugins>
 			</build>
+
 			<reporting>
 				<plugins>
 					<plugin>
@@ -327,15 +446,64 @@
 				</plugins>
 			</reporting>
 		</profile>
+
 		<profile>
 			<id>coverage</id>
 			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.jacoco</groupId>
-						<artifactId>jacoco-maven-plugin</artifactId>
-					</plugin>
-				</plugins>
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-compiler-plugin</artifactId>
+							<version>3.11.0</version>
+							<configuration>
+								<source>${java.version}</source>
+								<target>${java.version}</target>
+								<annotationProcessorPaths>
+									<path>
+										<groupId>org.mapstruct</groupId>
+										<artifactId>mapstruct-processor</artifactId>
+										<version>${mapstruct.version}</version>
+									</path>
+									<path>
+										<groupId>org.projectlombok</groupId>
+										<artifactId>lombok</artifactId>
+										<version>${lombok.version}</version>
+									</path>
+									<path>
+										<groupId>org.projectlombok</groupId>
+										<artifactId>lombok-mapstruct-binding</artifactId>
+										<version>${lombok-mapstruct-binding.version}</version>
+									</path>
+								</annotationProcessorPaths>
+							</configuration>
+						</plugin>
+
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-compiler-plugin</artifactId>
+							<version>${maven-compiler-plugin.version}</version>
+						</plugin>
+
+						<plugin>
+							<groupId>org.apache.avro</groupId>
+							<artifactId>avro-maven-plugin</artifactId>
+							<version>${avro-maven-plugin.version}</version>
+						</plugin>
+
+						<plugin>
+							<groupId>io.github.ascopes</groupId>
+							<artifactId>protobuf-maven-plugin</artifactId>
+							<version>${protobuf-plugin.version}</version>
+						</plugin>
+
+						<plugin>
+							<groupId>org.jacoco</groupId>
+							<artifactId>jacoco-maven-plugin</artifactId>
+							<version>${jacoco.maven.plugin.version}</version>
+						</plugin>
+					</plugins>
+				</pluginManagement>
 			</build>
 		</profile>
 	</profiles>

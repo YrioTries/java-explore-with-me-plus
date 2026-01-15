@@ -10,10 +10,9 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>stat-svc</artifactId>
+    <artifactId>stats</artifactId>
+    <name>stat</name>
     <packaging>pom</packaging>
-    <name>stat-svc</name>
-    <url>http://maven.apache.org</url>
 
     <modules>
         <module>server</module>
