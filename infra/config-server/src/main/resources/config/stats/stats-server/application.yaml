@@ -1,0 +1,15 @@
+server:
+  port: 0
+
+spring:
+  datasource:
+    url: jdbc:postgresql://stats-db:5432/explorewithme
+    username: dbuser
+    password: 12345
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false

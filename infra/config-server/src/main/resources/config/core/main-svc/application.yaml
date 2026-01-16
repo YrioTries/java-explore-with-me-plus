@@ -1,0 +1,15 @@
+server:
+  port: 0
+
+spring:
+  datasource:
+    url: jdbc:postgresql://main-svc-db:5432/main
+    username: dbuser
+    password: 12345
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false

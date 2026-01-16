@@ -12,7 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - stats-db-data:/var/lib/postgresql/data
-      - ./stat-svc/server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./stats/server/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dbuser -d explorewithme"]
       interval: 10s
@@ -21,7 +21,7 @@ services:
 
   stats-server:
     build:
-      context: ./stat-svc/server
+      context: stats/server
       dockerfile: Dockerfile
     container_name: stats-server
     environment:
@@ -47,7 +47,7 @@ services:
       - "5433:5432"
     volumes:
       - main-db-data:/var/lib/postgresql/data
-      - ./main-svc/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./core/main-svc/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U dbuser -d main"]
       interval: 10s
