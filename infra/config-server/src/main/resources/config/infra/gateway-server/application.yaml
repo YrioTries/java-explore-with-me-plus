@@ -1,0 +1,104 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-server
+
+  cloud:
+    config:
+      discovery:
+        enabled: true
+
+    gateway:
+      discovery:
+        locator:
+          enabled: true  # Включает автоматическое создание маршрутов для сервисов, зарегистрированных в Eureka
+
+      routes:
+        # Маршруты для Admin контроллеров
+        - id: admin-categories-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/admin/categories/**
+          filters:
+            - RewritePath=/admin/categories/(?<segment>.*), /admin/categories/$\{segment}
+
+        - id: admin-compilations-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/admin/compilations/**
+          filters:
+            - RewritePath=/admin/compilations/(?<segment>.*), /admin/compilations/$\{segment}
+
+        - id: admin-events-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/admin/events/**
+          filters:
+            - RewritePath=/admin/events/(?<segment>.*), /admin/events/$\{segment}
+
+        - id: admin-reviews-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/admin/reviews/**
+          filters:
+            - RewritePath=/admin/reviews/(?<segment>.*), /admin/reviews/$\{segment}
+
+        - id: admin-users-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/admin/users/**
+          filters:
+            - RewritePath=/admin/users/(?<segment>.*), /admin/users/$\{segment}
+
+        # Маршруты для Private контроллеров
+        - id: private-events-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/users/{userId}/events/**
+          filters:
+            - RewritePath=/users/(?<userId>\\d+)/events/(?<segment>.*), /users/$\{userId}/events/$\{segment}
+
+        - id: private-requests-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/users/{userId}/requests/**
+          filters:
+            - RewritePath=/users/(?<userId>\\d+)/requests/(?<segment>.*), /users/$\{userId}/requests/$\{segment}
+
+        - id: private-reviews-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/users/{userId}/reviews/**
+          filters:
+            - RewritePath=/users/(?<userId>\\d+)/reviews/(?<segment>.*), /users/$\{userId}/reviews/$\{segment}
+
+        # Маршруты для Public контроллеров
+        - id: public-categories-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/categories/**
+          filters:
+            - RewritePath=/categories/(?<segment>.*), /categories/$\{segment}
+
+        - id: public-compilations-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/compilations/**
+          filters:
+            - RewritePath=/compilations/(?<segment>.*), /compilations/$\{segment}
+
+        - id: public-events-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/events/**
+          filters:
+            - RewritePath=/events/(?<segment>.*), /events/$\{segment}
+
+        - id: public-reviews-route
+          uri: lb://main-svc
+          predicates:
+            - Path=/reviews/**
+          filters:
+            - RewritePath=/reviews/(?<segment>.*), /reviews/$\{segment}
